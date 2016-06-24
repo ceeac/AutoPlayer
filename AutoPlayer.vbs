@@ -19,6 +19,8 @@ Dim MinSpacing15
 Dim MinSpacing10
 Dim MinSpacing05
 
+LoadAPOptions
+
 
 ' Maximum value of 'min spacing' values
 Const MaxSpacingTime = 999 
@@ -261,6 +263,8 @@ Function GenerateNewTrack
 	
 	Do Until Iter.EOF
 		' Check tracks if they can be inserted into the Now Playing list
+		DbgMsg("Considering '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'")
+		
 		If IsTrackOK(Iter.Item) Then
 			If SDB.Tools.FileSystem.FileExists(Iter.Item.Path) Then
 				DbgMsg("NowPlayingAdd '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'")
