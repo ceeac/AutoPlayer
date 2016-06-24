@@ -3,7 +3,7 @@
 ' AutoDJ script to play higher-rated tracks more often
 ' Created by eucal
 '
-'
+
 Option Explicit
 Const DebugMode = False
 
@@ -225,7 +225,7 @@ Function IsTrackOK(Song)
 	For i = 0 To SDB.Player.CurrentSongList.Count-1
 		Set NowPlayingSong = SDB.Player.CurrentSongList.Item(i)
 		If NowPlayingSong.AlbumName = Song.AlbumName Or NowPlayingSong.AlbumArtistName = Song.AlbumArtistName Or NowPlayingSong.Title = Song.Title Then
-			DbgMsg("Rejecting " & Song.ArtistName & " - " & Song.Title & ": Similar tracks already in NowPlaying list")
+			DbgMsg("Rejecting " & Song.ArtistName & " - " & Song.Title & ": Track is already in NowPlaying list")
 			Exit Function
 		End If
 	Next
