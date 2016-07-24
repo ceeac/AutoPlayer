@@ -323,6 +323,10 @@ Sub ClearAndRefillNowPlaying
 	SDB.Player.PlaylistAddTrack NewSong
 	
 	SDB.Player.IsAutoDJ = True
+	SDB.Player.isShuffle = False
+	
+	' Clear message queue before starting playback (just to be sure)
+	SDB.ProcessMessages
 	SDB.Player.Play
 End Sub
 
