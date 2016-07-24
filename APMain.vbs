@@ -28,6 +28,8 @@ Dim MinSpacing15
 Dim MinSpacing10
 Dim MinSpacing05
 
+Dim APOptionsLoaded : APOptionsLoaded = False
+
 ' UI stuff
 Dim OptsPanel
 Dim MenuItem ' Menu item to show / hide panel when clicked
@@ -115,20 +117,24 @@ End Sub
 
 
 Sub LoadAPOptions()
-	Dim Ini : Set Ini = SDB.IniFile
-	
-	' Now load ini file values
-	MinSpacingNew = Ini.IntValue("AutoPlayer", "MinSpacingNew")
-	MinSpacing50  = Ini.IntValue("AutoPlayer", "MinSpacing50")
-	MinSpacing45  = Ini.IntValue("AutoPlayer", "MinSpacing45")
-	MinSpacing40  = Ini.IntValue("AutoPlayer", "MinSpacing40")
-	MinSpacing35  = Ini.IntValue("AutoPlayer", "MinSpacing35")
-	MinSpacing30  = Ini.IntValue("AutoPlayer", "MinSpacing30")
-	MinSpacing25  = Ini.IntValue("AutoPlayer", "MinSpacing25")
-	MinSpacing20  = Ini.IntValue("AutoPlayer", "MinSpacing20")
-	MinSpacing15  = Ini.IntValue("AutoPlayer", "MinSpacing15")
-	MinSpacing10  = Ini.IntValue("AutoPlayer", "MinSpacing10")
-	MinSpacing05  = Ini.IntValue("AutoPlayer", "MinSpacing05")
+	If Not APOptionsLoaded Then
+		Dim Ini : Set Ini = SDB.IniFile
+		
+		' Now load ini file values
+		MinSpacingNew = Ini.IntValue("AutoPlayer", "MinSpacingNew")
+		MinSpacing50  = Ini.IntValue("AutoPlayer", "MinSpacing50")
+		MinSpacing45  = Ini.IntValue("AutoPlayer", "MinSpacing45")
+		MinSpacing40  = Ini.IntValue("AutoPlayer", "MinSpacing40")
+		MinSpacing35  = Ini.IntValue("AutoPlayer", "MinSpacing35")
+		MinSpacing30  = Ini.IntValue("AutoPlayer", "MinSpacing30")
+		MinSpacing25  = Ini.IntValue("AutoPlayer", "MinSpacing25")
+		MinSpacing20  = Ini.IntValue("AutoPlayer", "MinSpacing20")
+		MinSpacing15  = Ini.IntValue("AutoPlayer", "MinSpacing15")
+		MinSpacing10  = Ini.IntValue("AutoPlayer", "MinSpacing10")
+		MinSpacing05  = Ini.IntValue("AutoPlayer", "MinSpacing05")
+		
+		APOptionsLoaded = True
+	End If
 End Sub
 
 
@@ -286,6 +292,8 @@ End Function
 ' Generates a new track to be queued for Now Playing
 Function GenerateNewTrack
 
+	LoadAPOptions
+	
 	' Select only tracks that have not been played for some time
 	Dim QueryString : QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND (" &_
 		"(SkipCount = 0 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingNew & ") OR " &_
