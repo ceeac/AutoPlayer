@@ -20,31 +20,31 @@ Const IniSection = "AutoPlayer"
 '
 ' Installation routine
 '
+Function BeginInstall
+	' Add entries to script.ini if you need to show up in the Scripts menu
+	Dim inip : inip = SDB.ScriptsPath & "Scripts.ini"
+	Dim inif : Set inif = SDB.Tools.IniFileByPath(inip)
 
-' Add entries to script.ini if you need to show up in the Scripts menu
-Dim inip : inip = SDB.ScriptsPath & "Scripts.ini"
-Dim inif : Set inif = SDB.Tools.IniFileByPath(inip)
+	If Not (inif Is Nothing) Then
+		inif.StringValue(ScriptName, "DisplayName") = ScriptName
+		inif.IntValue   (ScriptName, "ScriptType")  = 4
+		inif.StringValue(ScriptName, "FileName")    = "APMain.vbs"
+		inif.StringValue(ScriptName, "Language")    = "VBScript"
+	End If
 
-If Not (inif Is Nothing) Then
-	inif.StringValue(ScriptName, "DisplayName") = ScriptName
-	inif.IntValue   (ScriptName, "ScriptType")  = 4
-	inif.StringValue(ScriptName, "FileName")    = "APMain.vbs"
-	inif.StringValue(ScriptName, "Language")    = "VBScript"
-End If
+	Dim Ini : Set Ini = SDB.IniFile
 
-Dim Ini : Set Ini = SDB.IniFile
-
-' Set default values; overwrite them if they already exist
-' to allow fresh reinstall
-Ini.IntValue(IniSection, "MinSpacingNew") = DefaultMinSpacingNew
-Ini.IntValue(IniSection, "MinSpacing50")  = DefaultMinSpacing50
-Ini.IntValue(IniSection, "MinSpacing45")  = DefaultMinSpacing45
-Ini.IntValue(IniSection, "MinSpacing40")  = DefaultMinSpacing40
-Ini.IntValue(IniSection, "MinSpacing35")  = DefaultMinSpacing35
-Ini.IntValue(IniSection, "MinSpacing30")  = DefaultMinSpacing30
-Ini.IntValue(IniSection, "MinSpacing25")  = DefaultMinSpacing25
-Ini.IntValue(IniSection, "MinSpacing20")  = DefaultMinSpacing20
-Ini.IntValue(IniSection, "MinSpacing15")  = DefaultMinSpacing15
-Ini.IntValue(IniSection, "MinSpacing10")  = DefaultMinSpacing10
-Ini.IntValue(IniSection, "MinSpacing05")  = DefaultMinSpacing05
-
+	' Set default values; overwrite them if they already exist
+	' to allow fresh reinstall
+	Ini.IntValue(IniSection, "MinSpacingNew") = DefaultMinSpacingNew
+	Ini.IntValue(IniSection, "MinSpacing50")  = DefaultMinSpacing50
+	Ini.IntValue(IniSection, "MinSpacing45")  = DefaultMinSpacing45
+	Ini.IntValue(IniSection, "MinSpacing40")  = DefaultMinSpacing40
+	Ini.IntValue(IniSection, "MinSpacing35")  = DefaultMinSpacing35
+	Ini.IntValue(IniSection, "MinSpacing30")  = DefaultMinSpacing30
+	Ini.IntValue(IniSection, "MinSpacing25")  = DefaultMinSpacing25
+	Ini.IntValue(IniSection, "MinSpacing20")  = DefaultMinSpacing20
+	Ini.IntValue(IniSection, "MinSpacing15")  = DefaultMinSpacing15
+	Ini.IntValue(IniSection, "MinSpacing10")  = DefaultMinSpacing10
+	Ini.IntValue(IniSection, "MinSpacing05")  = DefaultMinSpacing05
+End Function
