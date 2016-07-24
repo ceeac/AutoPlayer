@@ -28,7 +28,7 @@ Dim inif : Set inif = SDB.Tools.IniFileByPath(inip)
 If Not (inif Is Nothing) Then
 	inif.StringValue(ScriptName, "DisplayName") = ScriptName
 	inif.IntValue   (ScriptName, "ScriptType")  = 4
-	inif.StringValue(ScriptName, "FileName")    = "AutoPlayer.vbs"
+	inif.StringValue(ScriptName, "FileName")    = "APMain.vbs"
 	inif.StringValue(ScriptName, "Language")    = "VBScript"
 End If
 

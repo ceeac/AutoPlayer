@@ -32,25 +32,11 @@ Dim MinSpacing05
 Dim OptsPanel
 Dim MenuItem ' Menu item to show / hide panel when clicked
 
+
 '
 ' Start of script here
 '
 Sub OnStartupMain
-	' Create default options
-	If Not SDB.IniFile.IntValue("AutoPlayer", "MinSpacingNew") Then
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacingNew") = 10
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing50")  = 30
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing45")  = 45
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing40")  = 60
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing35")  = 75
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing30")  = 90
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing25")  = 105
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing20")  = 150
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing15")  = 200
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing10")  = 250
-		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing45")  = 325
-	End If
-	
 	LoadAPOptions
 	
 	' Create quick options panel
