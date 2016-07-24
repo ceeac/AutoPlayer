@@ -3,10 +3,19 @@
 ' AutoDJ script to play higher-rated tracks more often
 ' Created by eucal
 '
-
 Option Explicit
-Const DebugMode = False
 
+'
+' Contant definitions
+'
+Const DebugMode = False
+Const CurrTime = "(JulianDay('now','localtime')-2415018.5)" ' Get current time for use in SQL strings
+Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
+
+
+'
+' Global variable definitions
+'
 Dim MinSpacingNew
 Dim MinSpacing50
 Dim MinSpacing45
@@ -19,14 +28,14 @@ Dim MinSpacing15
 Dim MinSpacing10
 Dim MinSpacing05
 
-LoadAPOptions
 
 
-' Maximum value of 'min spacing' values
-Const MaxSpacingTime = 999 
 
-' Get current time for use in SQL strings
-Const CurrTime = "(JulianDay('now','localtime')-2415018.5)"
+'
+' Start of script here
+'
+
+
 
 
 '
