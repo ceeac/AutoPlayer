@@ -303,6 +303,31 @@ End Function
 
 
 '
+' Clear now playing list and refill.
+'
+' Does the following:
+' 1. Stop playback
+' 2. Clear Now Playing list
+' 3. Query new track via GenerateNewTrack
+' 4. Enable AutoDJ
+' 5. Play track
+'
+Sub ClearAndRefillNowPlaying
+	SDB.Player.Stop
+	SDB.Player.PlaylistClear
+	
+	' Get first track
+	Dim NewSong : Set NewSong = GenerateNewTrack()
+	'MsgBox NewSong.Title & " - " & NewSong.Artist, vbOK
+	
+	SDB.Player.PlaylistAddTrack NewSong
+	
+	SDB.Player.IsAutoDJ = True
+	SDB.Player.Play
+End Sub
+
+
+'
 ' Uninstallation routine
 '
 Function BeginUninstall
