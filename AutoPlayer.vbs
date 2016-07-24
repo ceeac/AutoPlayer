@@ -50,7 +50,9 @@ Sub OnStartupMain
 		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing10")  = 250
 		SDB.IniFile.IntValue("AutoPlayer", "MinSpacing45")  = 325
 	End If
-
+	
+	LoadAPOptions
+	
 	' Create quick options panel
 	Set OptsPanel = SDB.UI.NewDockablePersistentPanel("APOptsPanel")
 	OptsPanel.Common.SetRect 10, 10, 200, 400
