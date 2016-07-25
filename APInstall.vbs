@@ -85,7 +85,6 @@ Function BeginUninstall
 	End If
 	
 	' delete AutoPlayer folder
-	MsgBox Path & "\" & ScriptName & "\", vbOK
 	If fso.FolderExists(Path & "\" & ScriptName & "\") Then
 		fso.DeleteFolder(Path & "\" & ScriptName)
 	End If
