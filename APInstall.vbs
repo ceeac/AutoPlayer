@@ -16,6 +16,7 @@ Const DefaultMinSpacing05  = 325
 
 Const ScriptName = "AutoPlayer"
 
+
 '
 ' Installation routine
 '
@@ -52,4 +53,41 @@ Function BeginInstall
 	If Not fso.FolderExists(Path & "\" & ScriptName & "\") Then
 		fso.CreateFolder Path & "\" & ScriptName & "\"
 	End If
+End Function
+
+
+'
+' Uninstallation routine
+'
+Function BeginUninstall
+	Dim MsgDeleteSettings : MsgDeleteSettings = "Do you want to remove " & ScriptName & " settings as well?" & vbNewLine & _
+                    "If you click No, script settings will be left in MediaMonkey.ini"
+	
+	Dim Ini : Set Ini = SDB.IniFile
+	
+	' Remove settings from ini file
+	If (Not Ini Is Nothing) Then
+		Dim res
+		res = SDB.MessageBox(SDB.Localize(MsgDeleteSettings), mtConfirmation, Array(mbYes, mbNo))
+		If res = mbYes Then ' delete settings
+			Ini.DeleteSection ScriptName
+		End If
+	End If
+ 
+	' Remove entries from scripts/scripts.ini
+	Dim fso : Set fso = CreateObject("Scripting.FileSystemObject")
+	Dim Path : Path = fso.GetParentFolderName(Script.ScriptPath)
+	Dim iniFile : Set iniFile = SDB.Tools.IniFileByPath(Path & "\Scripts.ini")
+	
+	If Not iniFile Is Nothing Then
+		iniFile.DeleteSection(ScriptName)
+		SDB.RefreshScriptItems
+	End If
+	
+	' delete AutoPlayer folder
+	MsgBox Path & "\" & ScriptName & "\", vbOK
+	If fso.FolderExists(Path & "\" & ScriptName & "\") Then
+		fso.DeleteFolder(Path & "\" & ScriptName)
+	End If
+	
 End Function

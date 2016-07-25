@@ -384,26 +384,3 @@ Sub ClearAndRefillNowPlaying
 	SDB.Player.Play
 End Sub
 
-
-'
-' Uninstallation routine
-'
-Function BeginUninstall
-	Dim MsgDeleteSettings : MsgDeleteSettings = "Do you want to remove AutoPlayer settings as well?" & vbNewLine & _
-                    "If you click No, script settings will be left in MediaMonkey.ini"
-	
-	Dim Ini : Set Ini = SDB.IniFile
-	
-	' Remove settings from ini file
-	If (Not Ini Is Nothing) And (MsgBox(MsgDeleteSettings, vbYesNo) = vbYes) Then
-		Ini.DeleteSection "AutoPlayer"
-	End If
- 
-	' Remove entries from scripts.ini
-	Dim iniPath : iniPath = SDB.CurrentAddonInstallRoot & "Scripts.ini"
-	Dim iniFile : Set iniFile = SDB.Tools.IniFileByPath(iniPath)
-	If Not iniFile Is Nothing Then
-		iniFile.DeleteSection("AutoPlayer")
-		SDB.RefreshScriptItems
-	End If
-End Function
