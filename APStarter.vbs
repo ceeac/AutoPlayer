@@ -13,7 +13,7 @@ Sub OnStartUp
 	
 	Dim fso : set fso = CreateObject("Scripting.FileSystemObject")
 	Dim Path : Path = fso.GetParentFolderName(Script.ScriptPath)
-	Path = fso.GetParentFolderName(Path) & "\APMain.vbs"
+	Path = fso.GetParentFolderName(Path) & "\AutoPlayer\APMain.vbs"
 	
 	Dim f : set f = fso.OpenTextFile(Path, 1)
 	Dim code : code = f.ReadAll()
