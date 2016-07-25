@@ -49,6 +49,8 @@ Function BeginInstall
 	Ini.IntValue(ScriptName, "MinSpacing15")  = DefaultMinSpacing15
 	Ini.IntValue(ScriptName, "MinSpacing10")  = DefaultMinSpacing10
 	Ini.IntValue(ScriptName, "MinSpacing05")  = DefaultMinSpacing05
-	
-	fso.CreateFolder Path & "\" & ScriptName & "\"
+
+	If Not fso.FolderExists(Path & "\" & ScriptName & "\") Then
+		fso.CreateFolder Path & "\" & ScriptName & "\"
+	End If
 End Function
