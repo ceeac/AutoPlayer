@@ -21,16 +21,15 @@ Const ScriptName = "AutoPlayer"
 '
 Function BeginInstall
 	' base folder to work around MMW bug regarding local vs global folders
-	Dim fso : set fso = CreateObject("Scripting.FileSystemObject")
+	Dim fso : Set fso = CreateObject("Scripting.FileSystemObject")
 	Dim Path : Path = fso.GetParentFolderName(Script.ScriptPath)
 	
 	' Add entries to script.ini if you need to show up in the Scripts menu
 	Dim inif : Set inif = SDB.Tools.IniFileByPath(Path & "\Scripts.ini")
-	
 	If Not (inif Is Nothing) Then
 		inif.StringValue(ScriptName, "DisplayName") = ScriptName
 		inif.IntValue   (ScriptName, "ScriptType")  = 4
-		inif.StringValue(ScriptName, "FileName")    = ScriptName & "APMain.vbs"
+		inif.StringValue(ScriptName, "FileName")    = ScriptName & "\APMain.vbs"
 		inif.StringValue(ScriptName, "Language")    = "VBScript"
 	End If
 
