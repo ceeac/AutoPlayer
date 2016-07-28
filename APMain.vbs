@@ -164,7 +164,7 @@ Function CreateSpacingTimeLine(Parent, ByVal xoff, ByVal yoff, LeftLabelText, Sp
 	
 	Dim LeftLabel : Set LeftLabel = SDB.UI.NewLabel(Parent)
 	LeftLabel.Common.SetRect xoff, yoff+4, LeftLabelWidth, 25
-	LeftLabel.Caption = LeftLabelText
+	LeftLabel.Caption = SDB.Localize(LeftLabelText)
 	xoff = xoff + LeftLabelWidth + 5
 	
 	Dim SpacingTimeEdit : Set SpacingTimeEdit = SDB.UI.NewSpinEdit(Parent)
@@ -176,7 +176,7 @@ Function CreateSpacingTimeLine(Parent, ByVal xoff, ByVal yoff, LeftLabelText, Sp
 	
 	Dim RightLabel : Set RightLabel = SDB.UI.NewLabel(Parent)
 	RightLabel.Common.SetRect xoff, yoff+4, 50, 25
-	RightLabel.Caption = "days"
+	RightLabel.Caption = SDB.Localize("days")
 	
 	Set CreateSpacingTimeLine = SpacingTimeEdit
 End Function
@@ -358,6 +358,7 @@ End Function
 
 '
 ' Clear now playing list and refill.
+' Called when the 'Play something!' button is clicked.
 '
 ' Does the following:
 ' 1. Stop playback
