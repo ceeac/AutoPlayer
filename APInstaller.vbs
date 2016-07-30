@@ -100,4 +100,10 @@ Function BeginUninstall
 	If fso.FolderExists(Path & "\" & ScriptName & "\") Then
 		fso.DeleteFolder(Path & "\" & ScriptName)
 	End If
+	
+	' Remove quick options panel
+	Dim OptsPanel : Set OptsPanel = SDB.UI.NewDockablePersistentPanel("APOptsPanel")
+	OptsPanel.Common.Visible = False
+	Set SDB.Objects("APOptsPanel") = Nothing
+	Set OptsPanel = Nothing
 End Function
