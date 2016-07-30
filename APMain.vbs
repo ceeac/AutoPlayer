@@ -246,7 +246,11 @@ End Sub
 ' Does nothing otherwise.
 Sub DbgMsg(str)
 	If DebugMode Then
+		' Force debug output
 		SDB.Tools.OutputDebugString("AP: " & str)
+	Else
+		' output only when using the debug version of MM
+		SDB.Tools.OutputDebugStringMM("AP: " & str)
 	End If
 End Sub
 
