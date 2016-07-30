@@ -3,6 +3,9 @@
 ' AutoDJ script to play higher-rated tracks more often
 ' Created by eucal
 '
+'
+' APStarter.vbs: Helper file to start the main script on startup.
+'
 Option Explicit
 
 '

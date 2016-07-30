@@ -1,7 +1,17 @@
 '
-' AutoPlayer install / uninstall script
+' AutoPlayer 0.1.0
+' AutoDJ script to play higher-rated tracks more often
+' Created by eucal
 '
+'
+' APInstaller.vbs: AutoPlayer install / uninstall script
+'
+Option Explicit
 
+
+'
+' Constant definitions
+'
 Const DefaultMinSpacingNew = 10		' Minimum time (days) between repeats of the same song (not skipped yet)
 Const DefaultMinSpacing50  = 30		' repeat for 5-star tracks
 Const DefaultMinSpacing45  = 45
@@ -15,6 +25,7 @@ Const DefaultMinSpacing10  = 250
 Const DefaultMinSpacing05  = 325
 
 Const ScriptName = "AutoPlayer"
+
 
 
 '

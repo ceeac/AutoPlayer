@@ -3,10 +3,13 @@
 ' AutoDJ script to play higher-rated tracks more often
 ' Created by eucal
 '
+'
+' APMain.vbs: Main script file.
+'
 Option Explicit
 
 '
-' Contant definitions
+' Constant definitions
 '
 Const DebugMode = False
 Const CurrTime = "(JulianDay('now','localtime')-2415018.5)" ' Get current time for use in SQL strings
