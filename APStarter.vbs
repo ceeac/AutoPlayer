@@ -8,12 +8,9 @@
 '
 Option Explicit
 
-'
-' Helper function to call the main AutoDJ script on startup.
-'
+
 Sub OnStartUp
-	' Include main script so we can assign the callback function when the play something button is pressed
-	
+	' Include main script
 	Dim fso : set fso = CreateObject("Scripting.FileSystemObject")
 	Dim Path : Path = fso.GetParentFolderName(Script.ScriptPath)
 	Path = fso.GetParentFolderName(Path) & "\AutoPlayer\APMain.vbs"
