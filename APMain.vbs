@@ -30,6 +30,7 @@ Dim MinSpacing20
 Dim MinSpacing15
 Dim MinSpacing10
 Dim MinSpacing05
+Dim MinSpacing00
 
 Dim APOptionsLoaded : APOptionsLoaded = False
 
@@ -110,6 +111,7 @@ Sub CloseConfigSheet(Panel, SaveConfig)
 		MinSpacing15  = OptionsForm.Common.ChildControl("OneH").Value
 		MinSpacing10  = OptionsForm.Common.ChildControl("One").Value
 		MinSpacing05  = OptionsForm.Common.ChildControl("ZeroH").Value
+		MinSpacing00  = OptionsForm.Common.ChildControl("Zero").Value
 		
 		SaveAPOptions
 	End If
@@ -135,6 +137,7 @@ Sub LoadAPOptions()
 		MinSpacing15  = Ini.IntValue("AutoPlayer", "MinSpacing15")
 		MinSpacing10  = Ini.IntValue("AutoPlayer", "MinSpacing10")
 		MinSpacing05  = Ini.IntValue("AutoPlayer", "MinSpacing05")
+		MinSpacing00  = Ini.IntValue("AutoPlayer", "MinSpacing00")
 		
 		APOptionsLoaded = True
 	End If
@@ -155,6 +158,7 @@ Sub SaveAPOptions()
 	Ini.IntValue("AutoPlayer", "MinSpacing15")  = MinSpacing15
 	Ini.IntValue("AutoPlayer", "MinSpacing10")  = MinSpacing10
 	Ini.IntValue("AutoPlayer", "MinSpacing05")  = MinSpacing05
+	Ini.IntValue("AutoPlayer", "MinSpacing00")  = MinSpacing00
 End Sub
 
 
@@ -218,6 +222,7 @@ Sub ShowDetailedOptions()
 		Dim MinSpacing15Edit  : Set MinSpacing15Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 1.5-star tracks:", "OneH")   : X = X + DeltaX : Y = Y + DeltaY
 		Dim MinSpacing10Edit  : Set MinSpacing10Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 1.0-star tracks:", "One")    : X = X + DeltaX : Y = Y + DeltaY
 		Dim MinSpacing05Edit  : Set MinSpacing05Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 0.5-star tracks:", "ZeroH")  : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing00Edit  : Set MinSpacing00Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for bomb tracks:", "Zero")       : X = X + DeltaX : Y = Y + DeltaY
 		
 		MinSpacingNewEdit.Value = MinSpacingNew
 		MinSpacing50Edit.Value  = MinSpacing50
@@ -230,6 +235,7 @@ Sub ShowDetailedOptions()
 		MinSpacing15Edit.Value  = MinSpacing15
 		MinSpacing10Edit.Value  = MinSpacing10
 		MinSpacing05Edit.Value  = MinSpacing05
+		MinSpacing00Edit.Value  = MinSpacing00
 		
 		' Add OK button
 		Dim OKButton : Set OKButton = SDB.UI.NewButton(OptionsForm)
@@ -304,18 +310,18 @@ Function GenerateNewTrack
 	' Select only tracks that have not been played for some time
 	Dim QueryString : QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND (" &_
 		"(SkipCount = 0 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingNew & ") OR " &_
-		"(SkipCount > 0 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing05 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 10 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing10 & ") OR" &_
-		"(SkipCount > 0 AND Rating > 20 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing15 & ") OR" &_
-		"(SkipCount > 0 AND Rating > 30 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing20 & ") OR" &_
-		"(SkipCount > 0 AND Rating > 40 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing25 & ") OR" &_
-		"(SkipCount > 0 AND Rating > 50 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing30 & ") OR" &_
-		"(SkipCount > 0 AND Rating > 60 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing35 & ") OR" &_
-		"(SkipCount > 0 AND Rating > 70 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing40 & ") OR" &_
-		"(SkipCount > 0 AND Rating > 80 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing45 & ") OR" &_
-		"(SkipCount > 0 AND Rating > 90 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing50 & ") ) ORDER BY RANDOM(*)"
-	
-	
+		"(SkipCount > 0 AND "            & "Rating <=  5 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing00 & ") OR " &_
+		"(SkipCount > 0 AND Rating >  5 AND Rating <= 15 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing05 & ") OR " &_
+		"(SkipCount > 0 AND Rating > 15 AND Rating <= 25 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing10 & ") OR " &_
+		"(SkipCount > 0 AND Rating > 25 AND Rating <= 35 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing15 & ") OR " &_
+		"(SkipCount > 0 AND Rating > 35 AND Rating <= 45 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing20 & ") OR " &_
+		"(SkipCount > 0 AND Rating > 45 AND Rating <= 55 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing25 & ") OR " &_
+		"(SkipCount > 0 AND Rating > 55 AND Rating <= 65 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing30 & ") OR " &_
+		"(SkipCount > 0 AND Rating > 65 AND Rating <= 75 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing35 & ") OR " &_
+		"(SkipCount > 0 AND Rating > 75 AND Rating <= 85 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing40 & ") OR " &_
+		"(SkipCount > 0 AND Rating > 85 AND Rating <= 95 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing45 & ") OR " &_
+		"(SkipCount > 0 AND Rating > 95 AND "                  & CurrTime & "-LastTimePlayed > " & MinSpacing50 & ") ) ORDER BY RANDOM(*)"
+
 	' Clear message queue first
 	SDB.ProcessMessages
 	

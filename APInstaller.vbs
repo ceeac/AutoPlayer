@@ -23,6 +23,7 @@ Const DefaultMinSpacing20  = 150
 Const DefaultMinSpacing15  = 200
 Const DefaultMinSpacing10  = 250
 Const DefaultMinSpacing05  = 325
+Const DefaultMinSpacing00  = 365 ' Bomb / Unknown rating
 
 Const ScriptName = "AutoPlayer"
 
@@ -60,7 +61,8 @@ Function BeginInstall
 	Ini.IntValue(ScriptName, "MinSpacing15")  = DefaultMinSpacing15
 	Ini.IntValue(ScriptName, "MinSpacing10")  = DefaultMinSpacing10
 	Ini.IntValue(ScriptName, "MinSpacing05")  = DefaultMinSpacing05
-
+	Ini.IntValue(Scriptname, "MinSpacing00")  = DefaultMinSpacing00
+	
 	If Not fso.FolderExists(Path & "\" & ScriptName & "\") Then
 		fso.CreateFolder Path & "\" & ScriptName & "\"
 	End If
