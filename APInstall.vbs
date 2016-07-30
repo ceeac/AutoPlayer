@@ -60,8 +60,8 @@ End Function
 ' Uninstallation routine
 '
 Function BeginUninstall
-	Dim MsgDeleteSettings : MsgDeleteSettings = "Do you want to remove " & ScriptName & " settings as well?" & vbNewLine & _
-                    "If you click No, script settings will be left in MediaMonkey.ini"
+	Dim MsgDeleteSettings : MsgDeleteSettings = "Do you want to remove " & ScriptName & " settings as well?" & vbNewLine &_
+		"If you click No, script settings will be left in MediaMonkey.ini"
 	
 	Dim Ini : Set Ini = SDB.IniFile
 	
