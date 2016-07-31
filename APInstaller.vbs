@@ -70,6 +70,7 @@ Function BeginInstall
 	WriteIfNotExists Ini, ScriptName, "MinSpacing00", DefaultMinSpacing00
 	
 	SDB.Tools.FileSystem.CreateFolder(SDB.CurrentAddonInstallRoot & "Scripts\" & ScriptName)
+	SDB.RefreshScriptItems
 End Function
 
 
@@ -112,4 +113,6 @@ Function BeginUninstall
 	OptsPanel.Common.Visible = False
 	Set SDB.Objects("APOptsPanel") = Nothing
 	Set OptsPanel = Nothing
+	
+	SDB.RefreshScriptItems
 End Function
