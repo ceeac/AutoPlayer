@@ -43,12 +43,8 @@ End Sub
 ' Installation routine
 '
 Function BeginInstall
-	' base folder to work around MMW bug regarding local vs global folders
-	Dim fso : Set fso = CreateObject("Scripting.FileSystemObject")
-	Dim Path : Path = fso.GetParentFolderName(Script.ScriptPath)
-	
 	' Add entries to script.ini if you need to show up in the Scripts menu
-	Dim inif : Set inif = SDB.Tools.IniFileByPath(Path & "\Scripts.ini")
+	Dim inif : Set inif = SDB.Tools.IniFileByPath(SDB.CurrentAddonInstallRoot & "Scripts\Scripts.ini")
 	If Not (inif Is Nothing) Then
 		inif.StringValue(ScriptName, "DisplayName") = ScriptName
 		inif.IntValue   (ScriptName, "ScriptType")  = 4
@@ -73,9 +69,7 @@ Function BeginInstall
 	WriteIfNotExists Ini, ScriptName, "MinSpacing05", DefaultMinSpacing05
 	WriteIfNotExists Ini, ScriptName, "MinSpacing00", DefaultMinSpacing00
 	
-	If Not fso.FolderExists(Path & "\" & ScriptName & "\") Then
-		fso.CreateFolder Path & "\" & ScriptName & "\"
-	End If
+	SDB.Tools.FileSystem.CreateFolder(SDB.CurrentAddonInstallRoot & "Scripts\" & ScriptName)
 End Function
 
 
