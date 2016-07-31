@@ -14,11 +14,13 @@ Option Explicit
 Const DebugMode = False
 Const CurrTime = "(JulianDay('now','localtime')-2415018.5)" ' Get current time for use in SQL strings
 Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
+Const ScriptName = "AutoPlayer"
 
 
 '
 ' Global variable definitions
 '
+Dim MinSpacingUnr
 Dim MinSpacingNew
 Dim MinSpacing50
 Dim MinSpacing45
@@ -49,7 +51,7 @@ Sub OnStartupMain
 	Set OptsPanel = SDB.UI.NewDockablePersistentPanel("APOptsPanel")
 	OptsPanel.Common.SetRect 10, 10, 200, 400
 	OptsPanel.Common.Visible = True
-	OptsPanel.Caption = "AutoPlayer Quick Options"
+	OptsPanel.Caption = ScriptName & " Quick Options"
 	OptsPanel.DockedTo = 1 ' Left sidebar
 
 	Script.RegisterEvent OptsPanel, "OnClose", "OptsPanelClose"
@@ -64,7 +66,7 @@ Sub OnStartupMain
 	
 	Dim Sep : Set Sep = SDB.UI.AddMenuItemSep(SDB.UI.Menu_View, 0, 0)
 	Set MenuItem = SDB.UI.AddMenuItem(SDB.UI.Menu_View, 0, 0)
-	MenuItem.Caption = "AutoPlayer Quick Options"
+	MenuItem.Caption = ScriptName & " Quick Options"
 	
 	Call Script.RegisterEvent(MenuItem, "OnClick", "OptsPanelShow")
 End Sub
@@ -97,26 +99,29 @@ End Sub
 ' Saves the configuration when requested.
 '
 Sub CloseConfigSheet(Panel, SaveConfig)
-	Dim OptionsForm : Set OptionsForm = SDB.Objects("AutoPlayerOptsForm")
+	Dim OptionsForm : Set OptionsForm = SDB.Objects(ScriptName & "OptsForm")
 	If (Not OptionsForm Is Nothing) And SaveConfig Then
 		' save spin edit values
-		MinSpacingNew = OptionsForm.Common.ChildControl("New").Value
-		MinSpacing50  = OptionsForm.Common.ChildControl("Five").Value
-		MinSpacing45  = OptionsForm.Common.ChildControl("FourH").Value
-		MinSpacing40  = OptionsForm.Common.ChildControl("Four").Value
-		MinSpacing35  = OptionsForm.Common.ChildControl("ThreeH").Value
-		MinSpacing30  = OptionsForm.Common.ChildControl("Three").Value
-		MinSpacing25  = OptionsForm.Common.ChildControl("TwoH").Value
-		MinSpacing20  = OptionsForm.Common.ChildControl("Two").Value
-		MinSpacing15  = OptionsForm.Common.ChildControl("OneH").Value
-		MinSpacing10  = OptionsForm.Common.ChildControl("One").Value
-		MinSpacing05  = OptionsForm.Common.ChildControl("ZeroH").Value
-		MinSpacing00  = OptionsForm.Common.ChildControl("Zero").Value
+		With OptionsForm.Common
+			MinSpacingUnr = .ChildControl("Unr").Value
+			MinSpacingNew = .ChildControl("New").Value
+			MinSpacing50  = .ChildControl("Five").Value
+			MinSpacing45  = .ChildControl("FourH").Value
+			MinSpacing40  = .ChildControl("Four").Value
+			MinSpacing35  = .ChildControl("ThreeH").Value
+			MinSpacing30  = .ChildControl("Three").Value
+			MinSpacing25  = .ChildControl("TwoH").Value
+			MinSpacing20  = .ChildControl("Two").Value
+			MinSpacing15  = .ChildControl("OneH").Value
+			MinSpacing10  = .ChildControl("One").Value
+			MinSpacing05  = .ChildControl("ZeroH").Value
+			MinSpacing00  = .ChildControl("Zero").Value
+		End With
 		
 		SaveAPOptions
 	End If
 	
-	Set SDB.Objects("AutoPlayerOptsForm") = Nothing
+	Set SDB.Objects(ScriptName & "OptsForm") = Nothing
 	Set OptionsForm = Nothing
 End Sub
 
@@ -126,18 +131,19 @@ Sub LoadAPOptions()
 		Dim Ini : Set Ini = SDB.IniFile
 		
 		' Now load ini file values
-		MinSpacingNew = Ini.IntValue("AutoPlayer", "MinSpacingNew")
-		MinSpacing50  = Ini.IntValue("AutoPlayer", "MinSpacing50")
-		MinSpacing45  = Ini.IntValue("AutoPlayer", "MinSpacing45")
-		MinSpacing40  = Ini.IntValue("AutoPlayer", "MinSpacing40")
-		MinSpacing35  = Ini.IntValue("AutoPlayer", "MinSpacing35")
-		MinSpacing30  = Ini.IntValue("AutoPlayer", "MinSpacing30")
-		MinSpacing25  = Ini.IntValue("AutoPlayer", "MinSpacing25")
-		MinSpacing20  = Ini.IntValue("AutoPlayer", "MinSpacing20")
-		MinSpacing15  = Ini.IntValue("AutoPlayer", "MinSpacing15")
-		MinSpacing10  = Ini.IntValue("AutoPlayer", "MinSpacing10")
-		MinSpacing05  = Ini.IntValue("AutoPlayer", "MinSpacing05")
-		MinSpacing00  = Ini.IntValue("AutoPlayer", "MinSpacing00")
+		MinSpacingUnr = Ini.IntValue(ScriptName, "MinSpacingUnr")
+		MinSpacingNew = Ini.IntValue(ScriptName, "MinSpacingNew")
+		MinSpacing50  = Ini.IntValue(ScriptName, "MinSpacing50")
+		MinSpacing45  = Ini.IntValue(ScriptName, "MinSpacing45")
+		MinSpacing40  = Ini.IntValue(ScriptName, "MinSpacing40")
+		MinSpacing35  = Ini.IntValue(ScriptName, "MinSpacing35")
+		MinSpacing30  = Ini.IntValue(ScriptName, "MinSpacing30")
+		MinSpacing25  = Ini.IntValue(ScriptName, "MinSpacing25")
+		MinSpacing20  = Ini.IntValue(ScriptName, "MinSpacing20")
+		MinSpacing15  = Ini.IntValue(ScriptName, "MinSpacing15")
+		MinSpacing10  = Ini.IntValue(ScriptName, "MinSpacing10")
+		MinSpacing05  = Ini.IntValue(ScriptName, "MinSpacing05")
+		MinSpacing00  = Ini.IntValue(ScriptName, "MinSpacing00")
 		
 		APOptionsLoaded = True
 	End If
@@ -147,18 +153,19 @@ End Sub
 Sub SaveAPOptions()
 	Dim Ini : Set Ini = SDB.IniFile
 	
-	Ini.IntValue("AutoPlayer", "MinSpacingNew") = MinSpacingNew
-	Ini.IntValue("AutoPlayer", "MinSpacing50")  = MinSpacing50
-	Ini.IntValue("AutoPlayer", "MinSpacing45")  = MinSpacing45
-	Ini.IntValue("AutoPlayer", "MinSpacing40")  = MinSpacing40
-	Ini.IntValue("AutoPlayer", "MinSpacing35")  = MinSpacing35
-	Ini.IntValue("AutoPlayer", "MinSpacing30")  = MinSpacing30
-	Ini.IntValue("AutoPlayer", "MinSpacing25")  = MinSpacing25
-	Ini.IntValue("AutoPlayer", "MinSpacing20")  = MinSpacing20
-	Ini.IntValue("AutoPlayer", "MinSpacing15")  = MinSpacing15
-	Ini.IntValue("AutoPlayer", "MinSpacing10")  = MinSpacing10
-	Ini.IntValue("AutoPlayer", "MinSpacing05")  = MinSpacing05
-	Ini.IntValue("AutoPlayer", "MinSpacing00")  = MinSpacing00
+	Ini.IntValue(ScriptName, "MinSpacingUnr") = MinSpacingUnr
+	Ini.IntValue(ScriptName, "MinSpacingNew") = MinSpacingNew
+	Ini.IntValue(ScriptName, "MinSpacing50")  = MinSpacing50
+	Ini.IntValue(ScriptName, "MinSpacing45")  = MinSpacing45
+	Ini.IntValue(ScriptName, "MinSpacing40")  = MinSpacing40
+	Ini.IntValue(ScriptName, "MinSpacing35")  = MinSpacing35
+	Ini.IntValue(ScriptName, "MinSpacing30")  = MinSpacing30
+	Ini.IntValue(ScriptName, "MinSpacing25")  = MinSpacing25
+	Ini.IntValue(ScriptName, "MinSpacing20")  = MinSpacing20
+	Ini.IntValue(ScriptName, "MinSpacing15")  = MinSpacing15
+	Ini.IntValue(ScriptName, "MinSpacing10")  = MinSpacing10
+	Ini.IntValue(ScriptName, "MinSpacing05")  = MinSpacing05
+	Ini.IntValue(ScriptName, "MinSpacing00")  = MinSpacing00
 End Sub
 
 
@@ -193,7 +200,7 @@ End Function
 ' This function initializes the Options Widow for AutoPlayer.
 '
 Sub ShowDetailedOptions()
-	Dim OptionsForm : Set OptionsForm = SDB.Objects("AutoPlayerOptsForm")
+	Dim OptionsForm : Set OptionsForm = SDB.Objects(ScriptName & "OptsForm")
 	If OptionsForm Is Nothing Then
 		' Panel was not already visible before, create it
 		LoadAPOptions
@@ -203,7 +210,7 @@ Sub ShowDetailedOptions()
 		OptionsForm.Common.SetRect 100, 100, 460, 375
 		OptionsForm.BorderStyle  = 3
 		OptionsForm.FormPosition = 4
-		OptionsForm.Caption = "AutoPlayer Settings"
+		OptionsForm.Caption = ScriptName & " Settings"
 
 		Const DeltaX = 0
 		Const DeltaY = 30
@@ -211,6 +218,7 @@ Sub ShowDetailedOptions()
 		Dim X : X = 10
 		Dim Y : Y = 10
 
+		Dim MinSpacingUnrEdit : Set MinSpacingUnrEdit = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for unrated tracks:", "Unr")     : X = X + DeltaX : Y = Y + DeltaY
 		Dim MinSpacingNewEdit : Set MinSpacingNewEdit = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for unskipped tracks:", "New")   : X = X + DeltaX : Y = Y + DeltaY
 		Dim MinSpacing50Edit  : Set MinSpacing50Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 5.0-star tracks:", "Five")   : X = X + DeltaX : Y = Y + DeltaY
 		Dim MinSpacing45Edit  : Set MinSpacing45Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 4.5-star tracks:", "FourH")  : X = X + DeltaX : Y = Y + DeltaY
@@ -224,6 +232,7 @@ Sub ShowDetailedOptions()
 		Dim MinSpacing05Edit  : Set MinSpacing05Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 0.5-star tracks:", "ZeroH")  : X = X + DeltaX : Y = Y + DeltaY
 		Dim MinSpacing00Edit  : Set MinSpacing00Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for bomb tracks:", "Zero")       : X = X + DeltaX : Y = Y + DeltaY
 		
+		MinSpacingUnrEdit.Value = MinSpacingUnr
 		MinSpacingNewEdit.Value = MinSpacingNew
 		MinSpacing50Edit.Value  = MinSpacing50
 		MinSpacing45Edit.Value  = MinSpacing45
@@ -244,7 +253,7 @@ Sub ShowDetailedOptions()
 		OKButton.ModalResult = 1
 
 		' Finally show the configuration dialogue
-		Set SDB.Objects("AutoPlayerOptsForm") = OptionsForm
+		Set SDB.Objects(ScriptName & "OptsForm") = OptionsForm
 	End If
 	
 	OptionsForm.ShowModal
@@ -297,9 +306,32 @@ Function IsTrackOK(Song)
 		End If
 	Next
 	
+	' Check if file exists
+	If Not SDB.Tools.FileSystem.FileExists(Song.Path) Then
+		DbgMsg("Rejecting " & Iter.Item.ArtistName & " - " & Iter.Item.Title & ": File does not exist")
+		Exit Function
+	End If
+	
 	IsTrackOK = True
 End Function
 
+
+Function GetSpacingQuery(ByVal MinSpacingFactor)
+	GetSpacingQuery = "(" &_
+		"(SkipCount = 0 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingNew & ") OR " &_
+		"(SkipCount > 0 AND "            & "Rating  = -1 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingUnr * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating >= 0 AND Rating <=  5 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing00  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating >  5 AND Rating <= 15 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing05  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 15 AND Rating <= 25 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing10  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 25 AND Rating <= 35 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing15  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 35 AND Rating <= 45 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing20  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 45 AND Rating <= 55 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing25  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 55 AND Rating <= 65 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing30  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 65 AND Rating <= 75 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing35  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 75 AND Rating <= 85 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing40  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 85 AND Rating <= 95 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing45  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 95 AND "                  & CurrTime & "-LastTimePlayed > " & MinSpacing50  * MinSpacingFactor & ") )"
+End Function
 
 
 ' Generates a new track to be queued for Now Playing
@@ -308,20 +340,9 @@ Function GenerateNewTrack
 	LoadAPOptions
 	
 	' Select only tracks that have not been played for some time
-	Dim QueryString : QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND (" &_
-		"(SkipCount = 0 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingNew & ") OR " &_
-		"(SkipCount > 0 AND "            & "Rating <=  5 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing00 & ") OR " &_
-		"(SkipCount > 0 AND Rating >  5 AND Rating <= 15 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing05 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 15 AND Rating <= 25 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing10 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 25 AND Rating <= 35 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing15 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 35 AND Rating <= 45 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing20 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 45 AND Rating <= 55 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing25 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 55 AND Rating <= 65 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing30 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 65 AND Rating <= 75 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing35 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 75 AND Rating <= 85 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing40 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 85 AND Rating <= 95 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing45 & ") OR " &_
-		"(SkipCount > 0 AND Rating > 95 AND "                  & CurrTime & "-LastTimePlayed > " & MinSpacing50 & ") ) ORDER BY RANDOM(*)"
-
+	Dim QueryString : QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND " &_
+		GetSpacingQuery(1) & " ORDER BY RANDOM(*)"
+		
 	' Clear message queue first
 	SDB.ProcessMessages
 	
@@ -333,16 +354,13 @@ Function GenerateNewTrack
 		DbgMsg("Considering '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'")
 		
 		If IsTrackOK(Iter.Item) Then
-			If SDB.Tools.FileSystem.FileExists(Iter.Item.Path) Then
-				DbgMsg("NowPlayingAdd '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'")
-				
-				Set GenerateNewTrack = Iter.Item
-				Set Iter = Nothing
-				Exit Function
-			Else
-				DbgMsg("Rejecting " & Iter.Item.ArtistName & " - " & Iter.Item.Title & ": File does not exist")
-			End If	
+			DbgMsg("NowPlayingAdd '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'")
+			
+			Set GenerateNewTrack = Iter.Item
+			Set Iter = Nothing
+			Exit Function
 		End If
+		
 		Iter.Next
 	Loop
 	
@@ -377,7 +395,7 @@ End Function
 ' 1. Stop playback
 ' 2. Clear Now Playing list
 ' 3. Query new track via GenerateNewTrack
-' 4. Enable AutoDJ
+' 4. Enable AutoDJ, disable shuffle
 ' 5. Play track
 '
 Sub ClearAndRefillNowPlaying
@@ -386,11 +404,10 @@ Sub ClearAndRefillNowPlaying
 	
 	' Get first track
 	Dim NewSong : Set NewSong = GenerateNewTrack()
-	'MsgBox NewSong.Title & " - " & NewSong.Artist, vbOK
-	
 	SDB.Player.PlaylistAddTrack NewSong
+	Set NewSong = Nothing
 	
-	SDB.Player.IsAutoDJ = True
+	SDB.Player.IsAutoDJ  = True
 	SDB.Player.isShuffle = False
 	
 	' Clear message queue before starting playback (just to be sure)

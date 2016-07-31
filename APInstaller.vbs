@@ -12,6 +12,7 @@ Option Explicit
 '
 ' Constant definitions
 '
+Const DefaultMinSpacingUnr = 105    ' Unknown rating
 Const DefaultMinSpacingNew = 10		' Minimum time (days) between repeats of the same song (not skipped yet)
 Const DefaultMinSpacing50  = 30		' repeat for 5-star tracks
 Const DefaultMinSpacing45  = 45
@@ -23,21 +24,17 @@ Const DefaultMinSpacing20  = 150
 Const DefaultMinSpacing15  = 200
 Const DefaultMinSpacing10  = 250
 Const DefaultMinSpacing05  = 325
-Const DefaultMinSpacing00  = 365 ' Bomb / Unknown rating
+Const DefaultMinSpacing00  = 365   ' Bomb rating
 
 Const ScriptName = "AutoPlayer"
 
 
-
-Sub WriteIfNotExists(ini, section, key, val As Integer)
+'
+' Writes an integer value if it does not exist in the ini file alerady.
+'
+Sub WriteIfNotExists(ini, section, key, val)
 	If Not ini.IntValue(section, key) Then
 		ini.IntValue(section, key) = val
-	End If
-End Sub
-
-Sub WriteIfNotExists(ini, section, key, val As String)
-	If Not ini.StringValue(section, key) Then
-		ini.StringValue(section, key) = val
 	End If
 End Sub
 
@@ -62,6 +59,7 @@ Function BeginInstall
 	Dim Ini : Set Ini = SDB.IniFile
 	
 	' set default values; preserve settings
+	WriteIfNotExists Ini, ScriptName, "MinSpacingUnr", DefaultMinSpacingUnr
 	WriteIfNotExists Ini, ScriptName, "MinSpacingNew", DefaultMinSpacingNew
 	WriteIfNotExists Ini, ScriptName, "MinSpacing50",  DefaultMinSpacing50
 	WriteIfNotExists Ini, ScriptName, "MinSpacing45", DefaultMinSpacing45
