@@ -70,6 +70,7 @@ Sub OnStartupMain
 	Dim Sep : Set Sep = SDB.UI.AddMenuItemSep(SDB.UI.Menu_View, 0, 0)
 	Set MenuItem = SDB.UI.AddMenuItem(SDB.UI.Menu_View, 0, 0)
 	MenuItem.Caption = ScriptName & " Quick Options"
+	MenuItem.Checked = OptsPanel.Common.Visible
 	
 	Call Script.RegisterEvent(MenuItem, "OnClick", "OptsPanelShow")
 End Sub
