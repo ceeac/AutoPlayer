@@ -29,6 +29,19 @@ Const ScriptName = "AutoPlayer"
 
 
 
+Sub WriteIfNotExists(ini, section, key, val As Integer)
+	If Not ini.IntValue(section, key) Then
+		ini.IntValue(section, key) = val
+	End If
+End Sub
+
+Sub WriteIfNotExists(ini, section, key, val As String)
+	If Not ini.StringValue(section, key) Then
+		ini.StringValue(section, key) = val
+	End If
+End Sub
+
+
 '
 ' Installation routine
 '
@@ -47,21 +60,20 @@ Function BeginInstall
 	End If
 
 	Dim Ini : Set Ini = SDB.IniFile
-
-	' Set default values; overwrite them if they already exist
-	' to allow fresh reinstall
-	Ini.IntValue(ScriptName, "MinSpacingNew") = DefaultMinSpacingNew
-	Ini.IntValue(ScriptName, "MinSpacing50")  = DefaultMinSpacing50
-	Ini.IntValue(ScriptName, "MinSpacing45")  = DefaultMinSpacing45
-	Ini.IntValue(ScriptName, "MinSpacing40")  = DefaultMinSpacing40
-	Ini.IntValue(ScriptName, "MinSpacing35")  = DefaultMinSpacing35
-	Ini.IntValue(ScriptName, "MinSpacing30")  = DefaultMinSpacing30
-	Ini.IntValue(ScriptName, "MinSpacing25")  = DefaultMinSpacing25
-	Ini.IntValue(ScriptName, "MinSpacing20")  = DefaultMinSpacing20
-	Ini.IntValue(ScriptName, "MinSpacing15")  = DefaultMinSpacing15
-	Ini.IntValue(ScriptName, "MinSpacing10")  = DefaultMinSpacing10
-	Ini.IntValue(ScriptName, "MinSpacing05")  = DefaultMinSpacing05
-	Ini.IntValue(Scriptname, "MinSpacing00")  = DefaultMinSpacing00
+	
+	' set default values; preserve settings
+	WriteIfNotExists Ini, ScriptName, "MinSpacingNew", DefaultMinSpacingNew
+	WriteIfNotExists Ini, ScriptName, "MinSpacing50",  DefaultMinSpacing50
+	WriteIfNotExists Ini, ScriptName, "MinSpacing45", DefaultMinSpacing45
+	WriteIfNotExists Ini, ScriptName, "MinSpacing40", DefaultMinSpacing40
+	WriteIfNotExists Ini, ScriptName, "MinSpacing35", DefaultMinSpacing35
+	WriteIfNotExists Ini, ScriptName, "MinSpacing30", DefaultMinSpacing30
+	WriteIfNotExists Ini, ScriptName, "MinSpacing25", DefaultMinSpacing25
+	WriteIfNotExists Ini, ScriptName, "MinSpacing20", DefaultMinSpacing20
+	WriteIfNotExists Ini, ScriptName, "MinSpacing15", DefaultMinSpacing15
+	WriteIfNotExists Ini, ScriptName, "MinSpacing10", DefaultMinSpacing10
+	WriteIfNotExists Ini, ScriptName, "MinSpacing05", DefaultMinSpacing05
+	WriteIfNotExists Ini, ScriptName, "MinSpacing00", DefaultMinSpacing00
 	
 	If Not fso.FolderExists(Path & "\" & ScriptName & "\") Then
 		fso.CreateFolder Path & "\" & ScriptName & "\"
