@@ -213,7 +213,7 @@ Sub ShowDetailedOptions()
 		OptionsForm.Caption = ScriptName & " Settings"
 
 		Const DeltaX = 0
-		Const DeltaY = 30
+		Const DeltaY = 25
 		
 		Dim X : X = 10
 		Dim Y : Y = 10
