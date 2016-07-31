@@ -49,11 +49,14 @@ Sub OnStartupMain
 	
 	' Create quick options panel
 	Set OptsPanel = SDB.UI.NewDockablePersistentPanel("APOptsPanel")
-	OptsPanel.Common.SetRect 10, 10, 200, 400
-	OptsPanel.Common.Visible = True
 	OptsPanel.Caption = ScriptName & " Quick Options"
-	OptsPanel.DockedTo = 1 ' Left sidebar
-
+	
+	If OptsPanel.IsNew Then
+		OptsPanel.Common.SetRect 10, 10, 200, 400
+		OptsPanel.Common.Visible = True
+		OptsPanel.DockedTo = 1 ' Left sidebar
+	End If
+	
 	Script.RegisterEvent OptsPanel, "OnClose", "OptsPanelClose"
 	
 	' And add the necessary controls
