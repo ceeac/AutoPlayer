@@ -386,7 +386,7 @@ Function GenerateNewTrack
 	
 	' All OK -> Tell about now playing song
 	DbgMsg("NowPlayingAdd " & Iter.Item.ArtistName & " - " & Iter.Item.Title)
-	
+	Set GenerateNewTrack = Iter.Item
 	Set Iter = Nothing
 End Function
 
