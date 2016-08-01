@@ -71,6 +71,34 @@ Sub OnStartupMain
 	
 	Call Script.RegisterEvent(PlayButton, "OnClick", "ClearAndRefillNowPlaying")
 	
+	' Get all mood tags from the database
+	Dim NumMoods : NumMoods = SDB.Database.OpenSQL("SELECT COUNT(Mood) FROM Songs GROUP BY Mood").ValueByIndex(0)
+	Dim MoodIter : Set MoodIter = SDB.Database.OpenSQL("SELECT Mood FROM Songs GROUP BY Mood")
+	Dim MoodDict : Set MoodDict = CreateObject("Scripting.Dictionary")
+	
+	Do While Not MoodIter.EOF
+		Dim Mood : Mood = MoodIter.ValueByIndex(0)
+		If Mood = "" Then Mood = "<Unknown>"
+		
+		' Create check box
+		Dim ChkBox : Set ChkBox = SDB.UI.NewCheckBox(ControlPanel)
+		With ChkBox
+			.Checked = True ' Initially, all moods are possible
+			.Common.Visible = True
+			.Caption = Mood
+			.Common.SetRect X, Y, 125, 20
+		End With
+		Y = Y + 20
+		
+		MoodDict.Add Mood, ChkBox
+		MoodIter.Next
+	Loop
+	
+	Set SDB.Objects("APMoodDict") = MoodDict
+	Set MoodIter = Nothing
+	Set MoodDict = Nothing
+	
+	' Add menu item to show / hide the control panel
 	Dim Sep : Set Sep = SDB.UI.AddMenuItemSep(SDB.UI.Menu_View, 0, 0)
 	Set ShowPanelMenuItem = SDB.UI.AddMenuItem(SDB.UI.Menu_View, 0, 0)
 	ShowPanelMenuItem.Caption = ControlPanel.Caption
@@ -345,6 +373,31 @@ End Function
 
 
 '
+' Return query string determined by which mood checkboxes are checked in the control panel.
+' this limits the selection of songs to those with "allowed" moods.
+'
+Function GetAllowedMoodsString
+	' Only select songs where the checkboxof the mood tag is checked
+	Dim MoodDict : Set MoodDict = SDB.Objects("APMoodDict")
+	Dim QueryMoodString : QueryMoodString = "(0 " ' 0=False
+	
+	Dim Mood
+	For Each Mood In MoodDict.Keys
+		If MoodDict.Item(Mood).Checked Then
+			If Mood="<Unknown>" Then
+				QueryMoodString = QueryMoodString & "OR Mood=''"
+			Else
+				QueryMoodString = QueryMoodString & "OR Mood='" & Mood & "' "
+			End If
+		End If
+	Next
+	QueryMoodString = QueryMoodString & ")"
+	GetAllowedMoodsString = QueryMoodString
+	Set MoodDict = Nothing
+End Function
+
+
+'
 ' Generates a new track to be queued for Now Playing
 '
 Function GenerateNewTrack
@@ -353,7 +406,7 @@ Function GenerateNewTrack
 	
 	' Select only tracks that have not been played for some time
 	Dim QueryString : QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND " &_
-		GetSpacingQuery(1) & " ORDER BY RANDOM(*)"
+		GetSpacingQuery(1) & " AND " & GetAllowedMoodsString() & " ORDER BY RANDOM(*)"
 
 	' Clear message queue first
 	SDB.ProcessMessages
