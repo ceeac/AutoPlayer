@@ -42,7 +42,8 @@ Dim ShowPanelMenuItem ' Menu item to show / hide panel when clicked
 
 
 '
-' Start of script here
+' Main procedure of the script.
+' Called on startup by AutoPlayerStarter.vbs and initializes all variables etc.
 '
 Sub OnStartupMain
 	LoadAPOptions
