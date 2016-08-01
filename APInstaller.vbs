@@ -33,7 +33,7 @@ Const ScriptName = "AutoPlayer"
 ' Writes a value if it does not exist in the ini file already.
 '
 Sub WriteIfNotExists(ini, section, key, val)
-	If ini.StringValue(section, key) Then Exit Sub ' Do not overwrite existing values
+	If (ini.StringValue(section, key) <> "") Then Exit Sub ' Do not overwrite existing values
 	
 	Select Case vartype(val)
 	Case vbInteger
@@ -63,6 +63,7 @@ Function BeginInstall
 	Dim Ini : Set Ini = SDB.IniFile
 	
 	' set default values; preserve settings
+	WriteIfNotExists Ini, ScriptName, "RootPath", SDB.CurrentAddonInstallRoot & "Scripts\AutoPlayer\"
 	WriteIfNotExists Ini, ScriptName, "MinSpacingUnr", DefaultMinSpacingUnr
 	WriteIfNotExists Ini, ScriptName, "MinSpacingNew", DefaultMinSpacingNew
 	WriteIfNotExists Ini, ScriptName, "MinSpacing50",  DefaultMinSpacing50
@@ -90,36 +91,31 @@ Function BeginUninstall
 		ScriptName & " settings as well?" & vbNewLine &_
 		"If you click No, script settings will be left in MediaMonkey.ini"
 	
+	Dim deleteSettings
+	deleteSettings = (SDB.MessageBox(SDB.Localize(MsgDeleteSettings), mtConfirmation, Array(mbYes, mbNo)) = mbYes)
+	
+	
 	Dim Ini : Set Ini = SDB.IniFile
 	
 	' Remove settings from ini file
-	If (Not Ini Is Nothing) Then
-		Dim res : res = SDB.MessageBox(SDB.Localize(MsgDeleteSettings), mtConfirmation, Array(mbYes, mbNo))
-		If res = mbYes Then ' delete settings
-			Ini.DeleteSection ScriptName
-		End If
+	If (Not Ini Is Nothing) And deleteSettings Then ' delete settings
+		Ini.DeleteSection ScriptName
 	End If
  
 	' Remove entries from scripts/scripts.ini
-	Dim fso : Set fso = CreateObject("Scripting.FileSystemObject")
-	Dim Path : Path = fso.GetParentFolderName(Script.ScriptPath)
-	Dim iniFile : Set iniFile = SDB.Tools.IniFileByPath(Path & "\Scripts.ini")
+	SDB.MessageBox SDB.ScriptsPath, mtInformation, Array(mbOK)
+	Dim scriptsIni : Set scriptsIni = SDB.Tools.IniFileByPath(SDB.ScriptsPath & "Scripts.ini")
 	
-	If Not iniFile Is Nothing Then
-		iniFile.DeleteSection(ScriptName)
-		SDB.RefreshScriptItems
+	If Not scriptsIni Is Nothing Then
+		scriptsIni.DeleteSection(ScriptName)
 	End If
 	
 	' delete AutoPlayer folder
-	If fso.FolderExists(Path & "\" & ScriptName & "\") Then
-		fso.DeleteFolder(Path & "\" & ScriptName)
+	Dim fso : Set fso = CreateObject("Scripting.FileSystemObject")
+	If fso.FolderExists(SDB.ScriptsPath & ScriptName & "\") Then
+		fso.DeleteFolder(SDB.ScriptsPath & ScriptName)
 	End If
 	
-	' Remove quick options panel
-	Dim OptsPanel : Set OptsPanel = SDB.UI.NewDockablePersistentPanel("APOptsPanel")
-	OptsPanel.Common.Visible = False
-	Set SDB.Objects("APOptsPanel") = Nothing
-	Set OptsPanel = Nothing
-	
+	' Refresh script items to remove control panel and menu item
 	SDB.RefreshScriptItems
 End Function

@@ -10,15 +10,12 @@ Option Explicit
 
 
 Sub OnStartUp
-	' Include main script
-	Dim fso : set fso = CreateObject("Scripting.FileSystemObject")
-	Dim Path : Path = fso.GetParentFolderName(Script.ScriptPath)
-	Path = fso.GetParentFolderName(Path) & "\AutoPlayer\APMain.vbs"
+	' Include main script and call it
+	Dim ini : Set ini = SDB.IniFile
 	
-	Dim f : set f = fso.OpenTextFile(Path, 1)
-	Dim code : code = f.ReadAll()
-	ExecuteGlobal code
-	
-	Call OnStartupMain()
+	If Not ini Is Nothing Then
+		Script.Include ini.StringValue("AutoPlayer", "RootPath") & "APMain.vbs"
+		Call OnStartupMain()
+	End If
 End Sub
 
