@@ -449,7 +449,7 @@ Function GenerateNewTrack
 	
 	
 	DbgMsg("Panic: Selecting random track")
-	Set Iter = SDB.Database.QuerySongs("ORDER BY RANDOM(*) LIMIT 1")
+	Set Iter = SDB.Database.QuerySongs("1 ORDER BY RANDOM(*) LIMIT 1")
 	If Iter.EOF Then
 		' There is nothing we can do about it; there are probably no tracks in the library
 		DbgMsg("Giving up: No suitable track has been found")
