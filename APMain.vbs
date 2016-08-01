@@ -58,7 +58,7 @@ Sub OnStartupMain
 		ControlPanel.DockedTo = 1 ' Left sidebar
 	End If
 	
-	Script.RegisterEvent ControlPanel, "OnClose", "ControlPanelClose"
+	Call Script.RegisterEvent(ControlPanel, "OnClose", "ControlPanelClose")
 	
 	' And add the necessary controls
 	Dim X : X = 10
@@ -394,8 +394,8 @@ Function GetAllowedMoodsString
 	' Only select songs where the checkboxof the mood tag is checked
 	Dim MoodDict : Set MoodDict = SDB.Objects("APMoodDict")
 	Dim QueryMoodString : QueryMoodString = "(0 " ' 0=False
-	
 	Dim Mood
+	
 	For Each Mood In MoodDict.Keys
 		If MoodDict.Item(Mood).Checked Then
 			If Mood="<Unknown>" Then
@@ -415,7 +415,6 @@ End Function
 ' Generates a new track to be queued for Now Playing
 '
 Function GenerateNewTrack
-
 	LoadAPOptions
 	
 	' Select only tracks that have not been played for some time

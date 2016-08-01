@@ -102,8 +102,7 @@ Function BeginUninstall
 		Ini.DeleteSection ScriptName
 	End If
  
-	' Remove entries from scripts/scripts.ini
-	SDB.MessageBox SDB.ScriptsPath, mtInformation, Array(mbOK)
+	' Remove entries from Scripts/cripts.ini
 	Dim scriptsIni : Set scriptsIni = SDB.Tools.IniFileByPath(SDB.ScriptsPath & "Scripts.ini")
 	
 	If Not scriptsIni Is Nothing Then
