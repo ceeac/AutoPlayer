@@ -37,8 +37,8 @@ Dim MinSpacing00
 Dim APOptionsLoaded : APOptionsLoaded = False
 
 ' UI stuff
-Dim OptsPanel
-Dim MenuItem ' Menu item to show / hide panel when clicked
+Dim ControlPanel
+Dim ShowPanelMenuItem ' Menu item to show / hide panel when clicked
 
 
 '
@@ -48,43 +48,43 @@ Sub OnStartupMain
 	LoadAPOptions
 	
 	' Create quick options panel
-	Set OptsPanel = SDB.UI.NewDockablePersistentPanel("APOptsPanel")
-	OptsPanel.Caption = ScriptName & " Quick Options"
+	Set ControlPanel = SDB.UI.NewDockablePersistentPanel("APControlPanel")
+	ControlPanel.Caption = ScriptName & " Control Panel"
 	
-	If OptsPanel.IsNew Then
-		OptsPanel.Common.SetRect 10, 10, 200, 400
-		OptsPanel.Common.Visible = True
-		OptsPanel.DockedTo = 1 ' Left sidebar
+	If ControlPanel.IsNew Then
+		ControlPanel.Common.SetRect 10, 10, 200, 400
+		ControlPanel.Common.Visible = True
+		ControlPanel.DockedTo = 1 ' Left sidebar
 	End If
 	
-	Script.RegisterEvent OptsPanel, "OnClose", "OptsPanelClose"
+	Script.RegisterEvent ControlPanel, "OnClose", "OptsPanelClose"
 	
 	' And add the necessary controls
-	Dim PlayButton : Set PlayButton = SDB.UI.NewButton(OptsPanel)
-	PlayButton.Caption = "Play something!"
+	Dim PlayButton : Set PlayButton = SDB.UI.NewButton(ControlPanel)
+	PlayButton.Caption = SDB.Localize("Play something!")
 	PlayButton.Common.SetRect 10, 10, 125, 25
 	PlayButton.Common.Visible = True
 
 	Call Script.RegisterEvent(PlayButton, "OnClick", "ClearAndRefillNowPlaying")
 	
 	Dim Sep : Set Sep = SDB.UI.AddMenuItemSep(SDB.UI.Menu_View, 0, 0)
-	Set MenuItem = SDB.UI.AddMenuItem(SDB.UI.Menu_View, 0, 0)
-	MenuItem.Caption = ScriptName & " Quick Options"
-	MenuItem.Checked = OptsPanel.Common.Visible
+	Set ShowPanelMenuItem = SDB.UI.AddMenuItem(SDB.UI.Menu_View, 0, 0)
+	ShowPanelMenuItem.Caption = ControlPanel.Caption
+	ShowPanelMenuItem.Checked = ControlPanel.Common.Visible
 	
-	Call Script.RegisterEvent(MenuItem, "OnClick", "OptsPanelShow")
+	Call Script.RegisterEvent(ShowPanelMenuItem, "OnClick", "OptsPanelShow")
 End Sub
 
 
 Sub OptsPanelShow(Item)
-	OptsPanel.Common.Visible = Not OptsPanel.Common.Visible
-	MenuItem.Checked = OptsPanel.Common.Visible
+	ControlPanel.Common.Visible = Not ControlPanel.Common.Visible
+	ShowPanelMenuItem.Checked = ControlPanel.Common.Visible
 End Sub
 
 
-Sub OptsPanelClose(Item) 
-	MenuItem.Checked = False
-End Sub 
+Sub OptsPanelClose(Item)
+	ShowPanelMenuItem.Checked = False
+End Sub
 
 
 '
@@ -222,19 +222,19 @@ Sub ShowDetailedOptions()
 		Dim X : X = 10
 		Dim Y : Y = 10
 
-		Dim MinSpacingUnrEdit : Set MinSpacingUnrEdit = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for unrated tracks:", "Unr")     : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacingNewEdit : Set MinSpacingNewEdit = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for unskipped tracks:", "New")   : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing50Edit  : Set MinSpacing50Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 5.0-star tracks:", "Five")   : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing45Edit  : Set MinSpacing45Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 4.5-star tracks:", "FourH")  : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing40Edit  : Set MinSpacing40Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 4.0-star tracks:", "Four")   : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing35Edit  : Set MinSpacing35Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 3.5-star tracks:", "ThreeH") : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing30Edit  : Set MinSpacing30Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 3.0-star tracks:", "Three")  : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing25Edit  : Set MinSpacing25Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 2.5-star tracks:", "TwoH")   : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing20Edit  : Set MinSpacing20Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 2.0-star tracks:", "Two")    : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing15Edit  : Set MinSpacing15Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 1.5-star tracks:", "OneH")   : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing10Edit  : Set MinSpacing10Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 1.0-star tracks:", "One")    : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing05Edit  : Set MinSpacing05Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 0.5-star tracks:", "ZeroH")  : X = X + DeltaX : Y = Y + DeltaY
-		Dim MinSpacing00Edit  : Set MinSpacing00Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for bomb tracks:", "Zero")       : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacingUnrEdit : Set MinSpacingUnrEdit = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for unrated tracks:",   "Unr")    : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacingNewEdit : Set MinSpacingNewEdit = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for unskipped tracks:", "New")    : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing50Edit  : Set MinSpacing50Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 5.0-star tracks:",  "Five")   : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing45Edit  : Set MinSpacing45Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 4.5-star tracks:",  "FourH")  : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing40Edit  : Set MinSpacing40Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 4.0-star tracks:",  "Four")   : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing35Edit  : Set MinSpacing35Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 3.5-star tracks:",  "ThreeH") : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing30Edit  : Set MinSpacing30Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 3.0-star tracks:",  "Three")  : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing25Edit  : Set MinSpacing25Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 2.5-star tracks:",  "TwoH")   : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing20Edit  : Set MinSpacing20Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 2.0-star tracks:",  "Two")    : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing15Edit  : Set MinSpacing15Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 1.5-star tracks:",  "OneH")   : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing10Edit  : Set MinSpacing10Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 1.0-star tracks:",  "One")    : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing05Edit  : Set MinSpacing05Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 0.5-star tracks:",  "ZeroH")  : X = X + DeltaX : Y = Y + DeltaY
+		Dim MinSpacing00Edit  : Set MinSpacing00Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for bomb tracks:",      "Zero")   : X = X + DeltaX : Y = Y + DeltaY
 		
 		MinSpacingUnrEdit.Value = MinSpacingUnr
 		MinSpacingNewEdit.Value = MinSpacingNew
@@ -263,9 +263,11 @@ Sub ShowDetailedOptions()
 	OptionsForm.ShowModal
 End Sub
 
-
-' Writes a debug message if debug mode is enabled.
+'
+' Writes a debug message if debug mode is enabled
+' or when using the debug version of MediaMonkey.
 ' Does nothing otherwise.
+'
 Sub DbgMsg(str)
 	If DebugMode Then
 		' Force debug output
@@ -338,7 +340,9 @@ Function GetSpacingQuery(ByVal MinSpacingFactor)
 End Function
 
 
+'
 ' Generates a new track to be queued for Now Playing
+'
 Function GenerateNewTrack
 
 	LoadAPOptions
