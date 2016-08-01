@@ -65,11 +65,25 @@ Sub OnStartupMain
 	Dim Y : Y = 10
 	
 	Dim PlayButton : Set PlayButton = SDB.UI.NewButton(ControlPanel)
-	PlayButton.Caption = SDB.Localize("Play something!")
-	PlayButton.Common.SetRect X, Y, 125, 25 : Y = Y  + 30
-	PlayButton.Common.Visible = True
+	With PlayButton
+		.Caption = SDB.Localize("Play something!")
+		.Common.SetRect X, Y, 125, 25
+		.Common.Visible = True
+	End With
+	Y = Y + 35
 	
 	Call Script.RegisterEvent(PlayButton, "OnClick", "ClearAndRefillNowPlaying")
+	
+	' Add label "Allowed Moods:"
+	Dim AllowedMoodsLabel : Set AllowedMoodsLabel = SDB.UI.NewLabel(ControlPanel)
+	With AllowedMoodsLabel
+		.Alignment = 0 ' Left
+		.Caption = SDB.Localize("Allowed Moods:")
+		.Multiline = False
+		.Autosize = True
+		.Common.SetRect X, Y, 125, 25
+	End With
+	Y = Y + 15
 	
 	' Get all mood tags from the database
 	Dim NumMoods : NumMoods = SDB.Database.OpenSQL("SELECT COUNT(Mood) FROM Songs GROUP BY Mood").ValueByIndex(0)
