@@ -66,6 +66,8 @@ Sub OnStartupMain
 		.Common.SetRect X, Y, 125, 25
 		.Common.Visible = True
 	End With
+	Call Script.RegisterEvent(PlayButton, "OnClick", "SaveAPOptions")
+	
 	Y = Y + 35
 	
 	Call Script.RegisterEvent(PlayButton, "OnClick", "ClearAndRefillNowPlaying")
