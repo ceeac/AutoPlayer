@@ -178,22 +178,22 @@ End Sub
 
 Sub LoadAPOptions()
 	If Not APOptionsLoaded Then
-		Dim Ini : Set Ini = SDB.IniFile
+		Dim Ini : Set Ini = SDB.Tools.IniFileByPath(ScriptName & ".ini")
 		
 		' Now load ini file values
-		MinSpacingUnr = Ini.IntValue(ScriptName, "MinSpacingUnr")
-		MinSpacingNew = Ini.IntValue(ScriptName, "MinSpacingNew")
-		MinSpacing50  = Ini.IntValue(ScriptName, "MinSpacing50")
-		MinSpacing45  = Ini.IntValue(ScriptName, "MinSpacing45")
-		MinSpacing40  = Ini.IntValue(ScriptName, "MinSpacing40")
-		MinSpacing35  = Ini.IntValue(ScriptName, "MinSpacing35")
-		MinSpacing30  = Ini.IntValue(ScriptName, "MinSpacing30")
-		MinSpacing25  = Ini.IntValue(ScriptName, "MinSpacing25")
-		MinSpacing20  = Ini.IntValue(ScriptName, "MinSpacing20")
-		MinSpacing15  = Ini.IntValue(ScriptName, "MinSpacing15")
-		MinSpacing10  = Ini.IntValue(ScriptName, "MinSpacing10")
-		MinSpacing05  = Ini.IntValue(ScriptName, "MinSpacing05")
-		MinSpacing00  = Ini.IntValue(ScriptName, "MinSpacing00")
+		MinSpacingUnr = Ini.IntValue("Spacing", "MinSpacingUnr")
+		MinSpacingNew = Ini.IntValue("Spacing", "MinSpacingNew")
+		MinSpacing50  = Ini.IntValue("Spacing", "MinSpacing50")
+		MinSpacing45  = Ini.IntValue("Spacing", "MinSpacing45")
+		MinSpacing40  = Ini.IntValue("Spacing", "MinSpacing40")
+		MinSpacing35  = Ini.IntValue("Spacing", "MinSpacing35")
+		MinSpacing30  = Ini.IntValue("Spacing", "MinSpacing30")
+		MinSpacing25  = Ini.IntValue("Spacing", "MinSpacing25")
+		MinSpacing20  = Ini.IntValue("Spacing", "MinSpacing20")
+		MinSpacing15  = Ini.IntValue("Spacing", "MinSpacing15")
+		MinSpacing10  = Ini.IntValue("Spacing", "MinSpacing10")
+		MinSpacing05  = Ini.IntValue("Spacing", "MinSpacing05")
+		MinSpacing00  = Ini.IntValue("Spacing", "MinSpacing00")
 		
 		APOptionsLoaded = True
 	End If
@@ -201,21 +201,21 @@ End Sub
 
 
 Sub SaveAPOptions()
-	Dim Ini : Set Ini = SDB.IniFile
+	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(ScriptName & ".ini")
 	
-	Ini.IntValue(ScriptName, "MinSpacingUnr") = MinSpacingUnr
-	Ini.IntValue(ScriptName, "MinSpacingNew") = MinSpacingNew
-	Ini.IntValue(ScriptName, "MinSpacing50")  = MinSpacing50
-	Ini.IntValue(ScriptName, "MinSpacing45")  = MinSpacing45
-	Ini.IntValue(ScriptName, "MinSpacing40")  = MinSpacing40
-	Ini.IntValue(ScriptName, "MinSpacing35")  = MinSpacing35
-	Ini.IntValue(ScriptName, "MinSpacing30")  = MinSpacing30
-	Ini.IntValue(ScriptName, "MinSpacing25")  = MinSpacing25
-	Ini.IntValue(ScriptName, "MinSpacing20")  = MinSpacing20
-	Ini.IntValue(ScriptName, "MinSpacing15")  = MinSpacing15
-	Ini.IntValue(ScriptName, "MinSpacing10")  = MinSpacing10
-	Ini.IntValue(ScriptName, "MinSpacing05")  = MinSpacing05
-	Ini.IntValue(ScriptName, "MinSpacing00")  = MinSpacing00
+	Ini.IntValue("Spacing", "MinSpacingUnr") = MinSpacingUnr
+	Ini.IntValue("Spacing", "MinSpacingNew") = MinSpacingNew
+	Ini.IntValue("Spacing", "MinSpacing50")  = MinSpacing50
+	Ini.IntValue("Spacing", "MinSpacing45")  = MinSpacing45
+	Ini.IntValue("Spacing", "MinSpacing40")  = MinSpacing40
+	Ini.IntValue("Spacing", "MinSpacing35")  = MinSpacing35
+	Ini.IntValue("Spacing", "MinSpacing30")  = MinSpacing30
+	Ini.IntValue("Spacing", "MinSpacing25")  = MinSpacing25
+	Ini.IntValue("Spacing", "MinSpacing20")  = MinSpacing20
+	Ini.IntValue("Spacing", "MinSpacing15")  = MinSpacing15
+	Ini.IntValue("Spacing", "MinSpacing10")  = MinSpacing10
+	Ini.IntValue("Spacing", "MinSpacing05")  = MinSpacing05
+	Ini.IntValue("Spacing", "MinSpacing00")  = MinSpacing00
 End Sub
 
 
@@ -493,3 +493,9 @@ Sub ClearAndRefillNowPlaying
 	SDB.Player.Play
 End Sub
 
+
+Sub BeginUninstall
+	Dim ini : Set ini = SDB.IniFile
+	Dim rootPath : rootPath = ini.StringValue(ScriptName, "RootPath")
+	SDB.Tools.FileSystem.CopyFile rootPath & "APInstaller.vbs", SDB.ScriptsPath & "APInstaller.vbs"
+End Sub
