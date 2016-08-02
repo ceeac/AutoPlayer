@@ -38,7 +38,7 @@ Sub WriteIniIfNotExists(ini, section, key, val)
 		Exit Sub
 	End If
 
-	If (ini.StringValue(section, key) <> "") Then Exit Sub ' Do not overwrite existing values
+	If ini.ValueExists(section, key) Then Exit Sub ' Do not overwrite existing values
 	
 	WriteIni ini, section, key, val
 End Sub
