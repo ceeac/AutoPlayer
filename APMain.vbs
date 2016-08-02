@@ -34,8 +34,6 @@ Dim MinSpacing10
 Dim MinSpacing05
 Dim MinSpacing00
 
-Dim APOptionsLoaded : APOptionsLoaded = False
-
 ' UI stuff
 Dim ControlPanel
 Dim ShowPanelMenuItem ' Menu item to show / hide panel when clicked
@@ -46,8 +44,6 @@ Dim ShowPanelMenuItem ' Menu item to show / hide panel when clicked
 ' Called on startup by AutoPlayerStarter.vbs and initializes all variables etc.
 '
 Sub OnStartupMain
-	LoadAPOptions
-	
 	' Create quick options panel
 	Set ControlPanel = SDB.UI.NewDockablePersistentPanel("APControlPanel")
 	ControlPanel.Caption = ScriptName & " Control Panel"
@@ -118,7 +114,10 @@ Sub OnStartupMain
 	ShowPanelMenuItem.Caption = ControlPanel.Caption
 	ShowPanelMenuItem.Checked = ControlPanel.Common.Visible
 	
+	LoadAPOptions
+	
 	Call Script.RegisterEvent(ShowPanelMenuItem, "OnClick", "ControlPanelShow")
+	Call Script.RegisterEvent(SDB, "OnShutdown", "SaveAPOptions")
 End Sub
 
 
@@ -149,7 +148,7 @@ End Sub
 ' Saves the configuration when requested.
 '
 Sub CloseConfigSheet(Panel, SaveConfig)
-	Dim OptionsForm : Set OptionsForm = SDB.Objects(ScriptName & "OptsForm")
+	Dim OptionsForm : Set OptionsForm = SDB.Objects("APOptsForm")
 	If (Not OptionsForm Is Nothing) And SaveConfig Then
 		' save spin edit values
 		With OptionsForm.Common
@@ -171,37 +170,43 @@ Sub CloseConfigSheet(Panel, SaveConfig)
 		SaveAPOptions
 	End If
 	
-	Set SDB.Objects(ScriptName & "OptsForm") = Nothing
+	Set SDB.Objects("APOptsForm") = Nothing
 	Set OptionsForm = Nothing
 End Sub
 
 
 Sub LoadAPOptions()
-	If Not APOptionsLoaded Then
-		Dim Ini : Set Ini = SDB.Tools.IniFileByPath(ScriptName & ".ini")
-		
-		' Now load ini file values
-		MinSpacingUnr = Ini.IntValue("Spacing", "MinSpacingUnr")
-		MinSpacingNew = Ini.IntValue("Spacing", "MinSpacingNew")
-		MinSpacing50  = Ini.IntValue("Spacing", "MinSpacing50")
-		MinSpacing45  = Ini.IntValue("Spacing", "MinSpacing45")
-		MinSpacing40  = Ini.IntValue("Spacing", "MinSpacing40")
-		MinSpacing35  = Ini.IntValue("Spacing", "MinSpacing35")
-		MinSpacing30  = Ini.IntValue("Spacing", "MinSpacing30")
-		MinSpacing25  = Ini.IntValue("Spacing", "MinSpacing25")
-		MinSpacing20  = Ini.IntValue("Spacing", "MinSpacing20")
-		MinSpacing15  = Ini.IntValue("Spacing", "MinSpacing15")
-		MinSpacing10  = Ini.IntValue("Spacing", "MinSpacing10")
-		MinSpacing05  = Ini.IntValue("Spacing", "MinSpacing05")
-		MinSpacing00  = Ini.IntValue("Spacing", "MinSpacing00")
-		
-		APOptionsLoaded = True
+	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
+
+	' Now load ini file values
+	MinSpacingUnr = Ini.IntValue("Spacing", "MinSpacingUnr")
+	MinSpacingNew = Ini.IntValue("Spacing", "MinSpacingNew")
+	MinSpacing50  = Ini.IntValue("Spacing", "MinSpacing50")
+	MinSpacing45  = Ini.IntValue("Spacing", "MinSpacing45")
+	MinSpacing40  = Ini.IntValue("Spacing", "MinSpacing40")
+	MinSpacing35  = Ini.IntValue("Spacing", "MinSpacing35")
+	MinSpacing30  = Ini.IntValue("Spacing", "MinSpacing30")
+	MinSpacing25  = Ini.IntValue("Spacing", "MinSpacing25")
+	MinSpacing20  = Ini.IntValue("Spacing", "MinSpacing20")
+	MinSpacing15  = Ini.IntValue("Spacing", "MinSpacing15")
+	MinSpacing10  = Ini.IntValue("Spacing", "MinSpacing10")
+	MinSpacing05  = Ini.IntValue("Spacing", "MinSpacing05")
+	MinSpacing00  = Ini.IntValue("Spacing", "MinSpacing00")
+	
+	Dim MoodDict : Set MoodDict = SDB.Objects("APMoodDict")
+	If Not MoodDict Is Nothing Then
+		Dim Mood
+		For Each Mood In MoodDict.Keys
+			' If the value does not exist, it evaluates to false;
+			' this means new moods are not allowed to be played by default.
+			MoodDict.Item(Mood).Checked = Ini.BoolValue("AllowedMoods", Mood)
+		Next
 	End If
 End Sub
 
 
 Sub SaveAPOptions()
-	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(ScriptName & ".ini")
+	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
 	
 	Ini.IntValue("Spacing", "MinSpacingUnr") = MinSpacingUnr
 	Ini.IntValue("Spacing", "MinSpacingNew") = MinSpacingNew
@@ -216,6 +221,14 @@ Sub SaveAPOptions()
 	Ini.IntValue("Spacing", "MinSpacing10")  = MinSpacing10
 	Ini.IntValue("Spacing", "MinSpacing05")  = MinSpacing05
 	Ini.IntValue("Spacing", "MinSpacing00")  = MinSpacing00
+	
+	Dim MoodDict : Set MoodDict = SDB.Objects("APMoodDict")
+	If Not MoodDict Is Nothing Then
+		Dim Mood
+		For Each Mood In MoodDict.Keys
+			Ini.BoolValue("AllowedMoods", Mood) = MoodDict.Item(Mood).Checked
+		Next
+	End If
 End Sub
 
 
@@ -250,7 +263,7 @@ End Function
 ' This function initializes the Options Widow for AutoPlayer.
 '
 Sub ShowDetailedOptions()
-	Dim OptionsForm : Set OptionsForm = SDB.Objects(ScriptName & "OptsForm")
+	Dim OptionsForm : Set OptionsForm = SDB.Objects("APOptsForm")
 	If OptionsForm Is Nothing Then
 		' Panel was not already visible before, create it
 		LoadAPOptions
@@ -303,7 +316,7 @@ Sub ShowDetailedOptions()
 		OKButton.ModalResult = 1
 
 		' Finally show the configuration dialogue
-		Set SDB.Objects(ScriptName & "OptsForm") = OptionsForm
+		Set SDB.Objects("APOptsForm") = OptionsForm
 	End If
 	
 	OptionsForm.ShowModal
