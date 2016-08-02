@@ -54,7 +54,7 @@ Sub WriteIni(ini, section, key, val)
 		ini.IntValue(section, key) = val
 	Case vbString
 		ini.StringValue(section, key) = val
-	Case vbBoolean	
+	Case vbBoolean
 		ini.BoolValue(section, key) = val
 	Case Else
 		SDB.MessageBox "Could not write object type " & typename(val), mtError, Array(mbOK)
@@ -81,7 +81,7 @@ Function BeginInstall
 	
 	' Create AutoPlayer.ini
 	Dim iniPath : iniPath = rootPath & ScriptName & ".ini"
-	Dim ini : Set Ini = SDB.Tools.IniFileByPath(iniPath)
+	Dim ini : Set ini = SDB.Tools.IniFileByPath(iniPath)
 	
 	If ini Is Nothing Then
 		SDB.Tools.FileSystem.CreateTextFile(iniPath)
@@ -106,7 +106,8 @@ Function BeginInstall
 	WriteIniIfNotExists ini, "Spacing", "MinSpacing10",  DefaultMinSpacing10
 	WriteIniIfNotExists ini, "Spacing", "MinSpacing05",  DefaultMinSpacing05
 	WriteIniIfNotExists ini, "Spacing", "MinSpacing00",  DefaultMinSpacing00
-
+	
+	
 	Set scriptsIni = Nothing
 	Set mmIni = Nothing
 	
@@ -127,11 +128,8 @@ Sub DeletePath(folderPath)
 		folderPath = .Replace(folderPath, "")
 	End With
 	
-	msgbox "Deleting folder " & folderPath, vbOK
-	
 	Dim fso : Set fso = CreateObject("Scripting.FileSystemObject")
 	If fso.FolderExists(folderPath) Then
-
 		fso.DeleteFolder(folderPath)
 	End If
 End Sub
