@@ -393,7 +393,7 @@ End Function
 
 Function GetSpacingQuery(ByVal MinSpacingFactor)
 	GetSpacingQuery = "(" &_
-		"(SkipCount = 0 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingNew & ") OR " &_
+		"(SkipCount = 0 AND "                                  & CurrTime & "-LastTimePlayed > " & MinSpacingNew * MinSpacingFactor & ") OR " &_
 		"(SkipCount > 0 AND "            & "Rating  = -1 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingUnr * MinSpacingFactor & ") OR " &_
 		"(SkipCount > 0 AND Rating >= 0 AND Rating <=  5 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing00  * MinSpacingFactor & ") OR " &_
 		"(SkipCount > 0 AND Rating >  5 AND Rating <= 15 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing05  * MinSpacingFactor & ") OR " &_
