@@ -11,7 +11,7 @@ Option Explicit
 '
 ' Constant definitions
 '
-Const DebugMode = False
+Const DebugMode = True
 Const CurrTime = "(JulianDay('now','localtime')-2415018.5)" ' Get current time for use in SQL strings
 Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
 Const ScriptName = "AutoPlayer"
@@ -187,6 +187,7 @@ End Sub
 
 
 Sub LoadAPOptions()
+	DbgMsg("Loading AutoPlayer settings")
 	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
 
 	' Now load ini file values
@@ -217,6 +218,7 @@ End Sub
 
 
 Sub SaveAPOptions()
+	DbgMsg("Saving AutoPlayer settings")
 	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
 	
 	Ini.IntValue("Spacing", "MinSpacingUnr") = MinSpacingUnr
@@ -431,6 +433,7 @@ Function GetAllowedMoodsString
 	Next
 	QueryMoodString = QueryMoodString & ")"
 	GetAllowedMoodsString = QueryMoodString
+	
 	Set MoodDict = Nothing
 End Function
 
@@ -457,6 +460,7 @@ Function GenerateNewTrack
 		
 		If IsTrackOK(Iter.Item) Then
 			DbgMsg("NowPlayingAdd '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'")
+			DbgMsg("")
 			
 			Set GenerateNewTrack = Iter.Item
 			Set Iter = Nothing
@@ -484,6 +488,8 @@ Function GenerateNewTrack
 	
 	' All OK -> Tell about now playing song
 	DbgMsg("NowPlayingAdd " & Iter.Item.ArtistName & " - " & Iter.Item.Title)
+	DbgMsg("")
+	
 	Set GenerateNewTrack = Iter.Item
 	Set Iter = Nothing
 End Function
