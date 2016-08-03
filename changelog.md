@@ -4,5 +4,5 @@
 
  - Initial public version.
  - Configurable repeat intervals
- - Configurable Allowed Moods
+ - Configurable allowed Moods
  - Play Something! button

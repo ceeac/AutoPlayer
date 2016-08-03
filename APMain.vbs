@@ -95,6 +95,7 @@ Sub OnStartupMain
 		' Create check box
 		Dim ChkBox : Set ChkBox = SDB.UI.NewCheckBox(ControlPanel)
 		With ChkBox
+			.Checked = True
 			.Common.Visible = True
 			.Caption = Mood
 			.Common.SetRect X, Y, 125, 20
