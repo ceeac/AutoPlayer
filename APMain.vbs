@@ -68,6 +68,8 @@ Sub OnStartupMain
 		.Common.SetRect X, Y, 125, 25
 		.Common.Visible = True
 	End With
+	Call Script.RegisterEvent(PlayButton, "OnClick", "SaveAPOptions")
+	
 	Y = Y + 35
 	
 	Call Script.RegisterEvent(PlayButton, "OnClick", "ClearAndRefillNowPlaying")
@@ -95,11 +97,14 @@ Sub OnStartupMain
 		' Create check box
 		Dim ChkBox : Set ChkBox = SDB.UI.NewCheckBox(ControlPanel)
 		With ChkBox
-			.Checked = True ' Initially, all moods are possible
 			.Common.Visible = True
 			.Caption = Mood
 			.Common.SetRect X, Y, 125, 20
 		End With
+		
+		Script.UnRegisterEvents ChkBox
+		Script.RegisterEvent ChkBox.Common, "OnClick", "OnCheckBoxToggled"
+		
 		Y = Y + 20
 		
 		MoodDict.Add Mood, ChkBox
@@ -124,6 +129,11 @@ Sub OnStartupMain
 	DbgMsg("Finished AutoPlayer startup")
 End Sub
 
+
+Sub OnCheckBoxToggled(chkBox)
+	SaveAPOptions
+End Sub
+	
 
 Sub ControlPanelShow(Item)
 	ControlPanel.Common.Visible = Not ControlPanel.Common.Visible
