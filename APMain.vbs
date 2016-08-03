@@ -11,7 +11,7 @@ Option Explicit
 '
 ' Constant definitions
 '
-Const DebugMode = False
+Const DebugMode = True
 Const CurrTime = "(JulianDay('now','localtime')-2415018.5)" ' Get current time for use in SQL strings
 Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
 Const ScriptName = "AutoPlayer"
@@ -44,6 +44,8 @@ Dim ShowPanelMenuItem ' Menu item to show / hide panel when clicked
 ' Called on startup by AutoPlayerStarter.vbs and initializes all variables etc.
 '
 Sub OnStartupMain
+	DbgMsg("Starting AutoPlayer")
+	
 	' Create quick options panel
 	Set ControlPanel = SDB.UI.NewDockablePersistentPanel("APControlPanel")
 	ControlPanel.Caption = ScriptName & " Control Panel"
@@ -118,6 +120,8 @@ Sub OnStartupMain
 	
 	Call Script.RegisterEvent(ShowPanelMenuItem, "OnClick", "ControlPanelShow")
 	Call Script.RegisterEvent(SDB, "OnShutdown", "SaveAPOptions")
+	
+	DbgMsg("Finished AutoPlayer startup")
 End Sub
 
 
@@ -366,7 +370,7 @@ Function IsTrackOK(Song)
 	For i = 0 To SDB.Player.CurrentSongList.Count-1
 		Set NowPlayingSong = SDB.Player.CurrentSongList.Item(i)
 		If NowPlayingSong.AlbumName = Song.AlbumName Or NowPlayingSong.AlbumArtistName = Song.AlbumArtistName Or NowPlayingSong.Title = Song.Title Then
-			DbgMsg("Rejecting " & Song.ArtistName & " - " & Song.Title & ": Track is already in NowPlaying list")
+			DbgMsg("Rejecting " & Song.ArtistName & " - " & Song.Title & ": Track is already in Now Playing list")
 			Exit Function
 		End If
 	Next
@@ -383,7 +387,7 @@ End Function
 
 Function GetSpacingQuery(ByVal MinSpacingFactor)
 	GetSpacingQuery = "(" &_
-		"(SkipCount = 0 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingNew & ") OR " &_
+		"(SkipCount = 0 AND "                                  & CurrTime & "-LastTimePlayed > " & MinSpacingNew * MinSpacingFactor & ") OR " &_
 		"(SkipCount > 0 AND "            & "Rating  = -1 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingUnr * MinSpacingFactor & ") OR " &_
 		"(SkipCount > 0 AND Rating >= 0 AND Rating <=  5 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing00  * MinSpacingFactor & ") OR " &_
 		"(SkipCount > 0 AND Rating >  5 AND Rating <= 15 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing05  * MinSpacingFactor & ") OR " &_
@@ -428,17 +432,40 @@ End Function
 ' Generates a new track to be queued for Now Playing
 '
 Function GenerateNewTrack
+	DbgMsg("Generating new track")
+	
 	LoadAPOptions
 	
-	' Select only tracks that have not been played for some time
-	Dim QueryString : QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND " &_
-		GetSpacingQuery(1) & " AND " & GetAllowedMoodsString() & " ORDER BY RANDOM(*)"
-
-	' Clear message queue first
-	SDB.ProcessMessages
+	Dim spacingFactor : spacingFactor = 3
+	Dim QueryString
+	
+	Do While spacingFactor >= 0.5
+		DbgMsg("SpacingFactor=" & spacingFactor)
+		
+		' Select only tracks that have not been played for some time
+		QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND " &_
+			GetSpacingQuery(spacingFactor) & " AND " & GetAllowedMoodsString()
+		
+		DbgMsg("QueryString = " & QueryString)
+		
+		SDB.ProcessMessages
+		Dim numSongs : numSongs = SDB.Database.OpenSQL("SELECT COUNT(ID) FROM Songs WHERE " & QueryString).ValueByIndex(0)
+		
+		DbgMsg("NumSongs=" & numSongs)
+		If numSongs > 50 Then
+			DbgMsg("Using SpacingFactor=" & spacingFactor)
+			Exit Do
+		End If
+		
+		If spacingFactor > 2 Then
+			spacingFactor = spacingFactor - 1
+		Else
+			spacingFactor = spacingFactor - 0.1
+		End If
+	Loop
 	
 	' Now query the SQL DB
-	Dim Iter : Set Iter = SDB.Database.QuerySongs(QueryString)
+	Dim Iter : Set Iter = SDB.Database.QuerySongs(QueryString & " ORDER BY RANDOM(*)")
 	
 	Do Until Iter.EOF
 		' Check tracks if they can be inserted into the Now Playing list
