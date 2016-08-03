@@ -459,8 +459,6 @@ Function GenerateNewTrack
 		QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND " &_
 			GetSpacingQuery(spacingFactor) & " AND " & GetAllowedMoodsString()
 		
-		DbgMsg("QueryString = " & QueryString)
-		
 		SDB.ProcessMessages
 		Dim numSongs : numSongs = SDB.Database.OpenSQL("SELECT COUNT(ID) FROM Songs WHERE " & QueryString).ValueByIndex(0)
 		
