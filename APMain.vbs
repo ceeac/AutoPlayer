@@ -39,52 +39,10 @@ Dim ControlPanel
 Dim ShowPanelMenuItem ' Menu item to show / hide panel when clicked
 
 
-'
-' Main procedure of the script.
-' Called on startup by AutoPlayerStarter.vbs and initializes all variables etc.
-'
-Sub OnStartupMain
-	' Create quick options panel
-	Set ControlPanel = SDB.UI.NewDockablePersistentPanel("APControlPanel")
-	ControlPanel.Caption = ScriptName & " Control Panel"
+Sub CreateMoodCheckboxes(ByRef X, ByRef Y)
+	Dim allowedMoods : Set allowedMoods = SDB.Objects("APMoodDict")
 	
-	If ControlPanel.IsNew Then
-		ControlPanel.Common.SetRect 10, 10, 200, 400
-		ControlPanel.Common.Visible = True
-		ControlPanel.DockedTo = 1 ' Left sidebar
-	End If
-	
-	Call Script.RegisterEvent(ControlPanel, "OnClose", "ControlPanelClose")
-	
-	' And add the necessary controls
-	Dim X : X = 10
-	Dim Y : Y = 10
-	
-	Dim PlayButton : Set PlayButton = SDB.UI.NewButton(ControlPanel)
-	With PlayButton
-		.Caption = SDB.Localize("Play something!")
-		.Common.SetRect X, Y, 125, 25
-		.Common.Visible = True
-	End With
-	Call Script.RegisterEvent(PlayButton, "OnClick", "SaveAPOptions")
-	
-	Y = Y + 35
-	
-	Call Script.RegisterEvent(PlayButton, "OnClick", "ClearAndRefillNowPlaying")
-	
-	' Add label "Allowed Moods:"
-	Dim AllowedMoodsLabel : Set AllowedMoodsLabel = SDB.UI.NewLabel(ControlPanel)
-	With AllowedMoodsLabel
-		.Alignment = 0 ' Left
-		.Caption = SDB.Localize("Allowed Moods:")
-		.Multiline = False
-		.Autosize = True
-		.Common.SetRect X, Y, 125, 25
-	End With
-	Y = Y + 15
-	
-	' Get all mood tags from the database
-	Dim NumMoods : NumMoods = SDB.Database.OpenSQL("SELECT COUNT(Mood) FROM Songs GROUP BY Mood").ValueByIndex(0)
+	' Get all mood tags from the database and update allowed mood
 	Dim MoodIter : Set MoodIter = SDB.Database.OpenSQL("SELECT Mood FROM Songs GROUP BY Mood")
 	Dim MoodDict : Set MoodDict = CreateObject("Scripting.Dictionary")
 	
@@ -92,10 +50,17 @@ Sub OnStartupMain
 		Dim Mood : Mood = MoodIter.ValueByIndex(0)
 		If Mood = "" Then Mood = "<Unknown>"
 		
-		' Create check box
+		If Not allowedMoods.Exists(Mood) Then
+			allowedMoods(Mood) = True ' allow unknown/new moods to be played by default
+		End If
+		MoodIter.Next
+	Loop
+	
+	' Now create check boxes
+	For Each Mood In allowedMoods.Keys
 		Dim ChkBox : Set ChkBox = SDB.UI.NewCheckBox(ControlPanel)
 		With ChkBox
-			.Checked = True
+			.Checked = allowedMoods(Mood)
 			.Common.Visible = True
 			.Caption = Mood
 			.Common.SetRect X, Y, 125, 20
@@ -108,11 +73,66 @@ Sub OnStartupMain
 		
 		MoodDict.Add Mood, ChkBox
 		MoodIter.Next
-	Loop
+	Next
+End Sub
+
+
+'
+' Main procedure of the script.
+' Called on startup by AutoPlayerStarter.vbs and initializes all variables etc.
+'
+Sub OnStartupMain
+	DbgMsg ScriptName & " starting..."
 	
-	Set SDB.Objects("APMoodDict") = MoodDict
-	Set MoodIter = Nothing
-	Set MoodDict = Nothing
+	' Create global variables
+	Set SDB.Objects("APMoodDict") = CreateObject("Scripting.Dictionary")
+	
+	LoadAPOptions
+	
+	
+	'
+	' UI stuff
+	' 
+	' Create quick options panel
+	Set ControlPanel = SDB.UI.NewDockablePersistentPanel("APControlPanel")
+	ControlPanel.Caption = ScriptName & " Control Panel"
+	
+	If ControlPanel.IsNew Then
+		ControlPanel.Common.SetRect 10, 10, 200, 400
+		ControlPanel.Common.Visible = True
+		ControlPanel.DockedTo = 1 ' Left sidebar
+	End If
+	
+	Script.RegisterEvent ControlPanel, "OnClose", "ControlPanelClose"
+	
+	' And add the necessary controls
+	Dim X : X = 10
+	Dim Y : Y = 10
+	
+	Dim PlayButton : Set PlayButton = SDB.UI.NewButton(ControlPanel)
+	With PlayButton
+		.Caption = SDB.Localize("Play something!")
+		.Common.SetRect X, Y, 125, 25
+		.Common.Visible = True
+	End With
+	Script.RegisterEvent PlayButton, "OnClick", "SaveAPOptions"
+	
+	Y = Y + 35
+	
+	Script.RegisterEvent PlayButton, "OnClick", "ClearAndRefillNowPlaying"
+	
+	' Add label "Allowed Moods:"
+	Dim AllowedMoodsLabel : Set AllowedMoodsLabel = SDB.UI.NewLabel(ControlPanel)
+	With AllowedMoodsLabel
+		.Alignment = 0 ' Left
+		.Caption = SDB.Localize("Allowed Moods:")
+		.Multiline = False
+		.Autosize = True
+		.Common.SetRect X, Y, 125, 25
+	End With
+	Y = Y + 15
+	
+	CreateMoodCheckboxes X, Y
 	
 	' Add menu item to show / hide the control panel
 	Dim Sep : Set Sep = SDB.UI.AddMenuItemSep(SDB.UI.Menu_View, 0, 0)
@@ -120,15 +140,19 @@ Sub OnStartupMain
 	ShowPanelMenuItem.Caption = ControlPanel.Caption
 	ShowPanelMenuItem.Checked = ControlPanel.Common.Visible
 	
-	LoadAPOptions
+	Script.RegisterEvent ShowPanelMenuItem, "OnClick", "ControlPanelShow"
+	Script.RegisterEvent SDB, "OnShutdown", "SaveAPOptions"
 	
-	Call Script.RegisterEvent(ShowPanelMenuItem, "OnClick", "ControlPanelShow")
-	Call Script.RegisterEvent(SDB, "OnShutdown", "SaveAPOptions")
+	DbgMsg(ScriptName & " started.")
 End Sub
 
 
 Sub OnCheckBoxToggled(chkBox)
-	SaveAPOptions
+	Dim allowedMoods : Set allowedMoods = SDB.Objects("APMoodDict")
+	Dim mood : mood = chkBox.Caption
+	
+	If allowedMoods Is Nothing Then Exit Sub
+	allowedMoods(mood) = chkBox.Checked
 End Sub
 	
 
@@ -185,11 +209,13 @@ Sub CloseConfigSheet(Panel, SaveConfig)
 	Set OptionsForm = Nothing
 End Sub
 
-
+'
+' (Re-)loads options from ini file.
+'
 Sub LoadAPOptions()
-	DbgMsg("Loading AutoPlayer settings")
 	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
-
+	DbgMsg("Loading " & ScriptName & " settings from " & Ini.Path)
+	
 	' Now load ini file values
 	MinSpacingUnr = Ini.IntValue("Spacing", "MinSpacingUnr")
 	MinSpacingNew = Ini.IntValue("Spacing", "MinSpacingNew")
@@ -206,21 +232,26 @@ Sub LoadAPOptions()
 	MinSpacing00  = Ini.IntValue("Spacing", "MinSpacing00")
 	
 	Dim MoodDict : Set MoodDict = SDB.Objects("APMoodDict")
-	If Not MoodDict Is Nothing Then
-		Dim Mood
-		For Each Mood In MoodDict.Keys
-			' If the value does not exist, it evaluates to false;
-			' this means new moods are not allowed to be played by default.
-			MoodDict.Item(Mood).Checked = Ini.BoolValue("AllowedMoods", Mood)
-		Next
-	End If
+	If MoodDict Is Nothing Then Exit Sub
+	
+	MoodDict.RemoveAll
+
+	Dim KeyValueList : Set KeyValueList = Ini.Keys("AllowedMoods")
+	Dim i
+	
+	For i=0 To KeyValueList.Count-1
+		Dim KeyValue : KeyValue = KeyValueList.Item(i)
+		Dim Mood : Mood = Left(KeyValue, InStr(KeyValue, "=") - 1)
+		
+		MoodDict(Mood) = Ini.BoolValue("AllowedMoods", Mood)
+	Next
 End Sub
 
 
 Sub SaveAPOptions()
-	DbgMsg("Saving AutoPlayer settings")
 	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
-	
+	DbgMsg("Saving " & ScriptName & " settings to " & ini.Path)
+
 	Ini.IntValue("Spacing", "MinSpacingUnr") = MinSpacingUnr
 	Ini.IntValue("Spacing", "MinSpacingNew") = MinSpacingNew
 	Ini.IntValue("Spacing", "MinSpacing50")  = MinSpacing50
@@ -239,7 +270,7 @@ Sub SaveAPOptions()
 	If Not MoodDict Is Nothing Then
 		Dim Mood
 		For Each Mood In MoodDict.Keys
-			Ini.BoolValue("AllowedMoods", Mood) = MoodDict.Item(Mood).Checked
+			Ini.BoolValue("AllowedMoods", Mood) = MoodDict(Mood)
 		Next
 	End If
 End Sub
