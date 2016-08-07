@@ -448,28 +448,28 @@ End Function
 
 
 '
-' Return query string determined by which mood checkboxes are checked in the control panel.
-' this limits the selection of songs to those with "allowed" moods.
+' Return query string determined by which moods are allowed.
+' this limits the selection of songs to those with "allowed" mood tags.
 '
 Function GetAllowedMoodsString
 	' Only select songs where the checkboxof the mood tag is checked
-	Dim MoodDict : Set MoodDict = SDB.Objects("APMoodDict")
+	Dim allowedMoods : Set allowedMoods = SDB.Objects("APMoodDict")
 	Dim QueryMoodString : QueryMoodString = "(0 " ' 0=False
 	Dim Mood
 	
-	For Each Mood In MoodDict.Keys
-		If MoodDict.Item(Mood).Checked Then
-			If Mood="<Unknown>" Then
+	For Each mood In allowedMoods.Keys
+		If allowedMoods(Mood) Then
+			If mood = "<Unknown>" Then
 				QueryMoodString = QueryMoodString & "OR Mood=''"
 			Else
-				QueryMoodString = QueryMoodString & "OR Mood='" & Mood & "' "
+				QueryMoodString = QueryMoodString & "OR Mood='" & mood & "' "
 			End If
 		End If
 	Next
 	QueryMoodString = QueryMoodString & ")"
 	GetAllowedMoodsString = QueryMoodString
 	
-	Set MoodDict = Nothing
+	Set allowedMoods = Nothing
 End Function
 
 
