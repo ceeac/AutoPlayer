@@ -43,6 +43,7 @@ Sub WriteIniIfNotExists(ini, section, key, val)
 	WriteIni ini, section, key, val
 End Sub
 
+
 Sub WriteIni(ini, section, key, val)
 	If ini Is Nothing Then
 		SDB.MessageBox "Could not write to ini file.", mtError, Array(mbOK)
@@ -89,23 +90,25 @@ Function BeginInstall
 		
 		If ini Is Nothing Then
 			SDB.MessageBox "Error: Could not create ini file!", mtError, Array(mbOK)
+			BeginInstall = -1
+			Exit Function
 		End If
 	End If
 	
 	' Preserve settings when reinstalling
-	WriteIniIfNotExists ini, "Spacing", "MinSpacingUnr", DefaultMinSpacingUnr
-	WriteIniIfNotExists ini, "Spacing", "MinSpacingNew", DefaultMinSpacingNew
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing50",  DefaultMinSpacing50
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing45",  DefaultMinSpacing45
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing40",  DefaultMinSpacing40
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing35",  DefaultMinSpacing35
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing30",  DefaultMinSpacing30
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing25",  DefaultMinSpacing25
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing20",  DefaultMinSpacing20
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing15",  DefaultMinSpacing15
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing0", DefaultMinSpacingUnr
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing1", DefaultMinSpacingNew
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing2",  DefaultMinSpacing50
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing3",  DefaultMinSpacing45
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing4",  DefaultMinSpacing40
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing5",  DefaultMinSpacing35
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing6",  DefaultMinSpacing30
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing7",  DefaultMinSpacing25
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing8",  DefaultMinSpacing20
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing9",  DefaultMinSpacing15
 	WriteIniIfNotExists ini, "Spacing", "MinSpacing10",  DefaultMinSpacing10
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing05",  DefaultMinSpacing05
-	WriteIniIfNotExists ini, "Spacing", "MinSpacing00",  DefaultMinSpacing00
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing11",  DefaultMinSpacing05
+	WriteIniIfNotExists ini, "Spacing", "MinSpacing12",  DefaultMinSpacing00
 	
 	
 	Set scriptsIni = Nothing
@@ -120,13 +123,18 @@ Function FinishInstall
 End Function
 
 
-Sub DeletePath(folderPath)
-	' Delete trailing backslash
+Sub RegExpReplace(ByRef str, ByVal pattern, ByVal replacement)
 	With (New RegExp)
 		.Global = True
-		.Pattern = "\\$"
-		folderPath = .Replace(folderPath, "")
+		.Pattern = pattern
+		folderPath = .Replace(folderPath, replacement)
 	End With
+End Sub
+
+	
+Sub DeletePath(folderPath)
+	' Delete trailing backslash if present
+	RegExpReplace folderPath, "\\$", ""
 	
 	Dim fso : Set fso = CreateObject("Scripting.FileSystemObject")
 	If fso.FolderExists(folderPath) Then

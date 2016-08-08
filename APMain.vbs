@@ -17,52 +17,157 @@ Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
 Const ScriptName = "AutoPlayer"
 
 
-'
-' Global variable definitions
-'
-Dim MinSpacingUnr
-Dim MinSpacingNew
-Dim MinSpacing50
-Dim MinSpacing45
-Dim MinSpacing40
-Dim MinSpacing35
-Dim MinSpacing30
-Dim MinSpacing25
-Dim MinSpacing20
-Dim MinSpacing15
-Dim MinSpacing10
-Dim MinSpacing05
-Dim MinSpacing00
+Class APSettings
+	' settings version. Used for backwards compatibility.
+	Private m_settingsVersion
+	
+	' Values for min spacing of tracks.
+	' Index 0: Unrated
+	' Index 1: Unskipped
+	' Index 2: 5-star tracks
+	' Index 3: 4.5-star tracks
+	' etc.
+	Private m_minSpacing(12)
+	
+	' Dictionary of known mood tags and if they are allowed.
+	Private m_allowedMoods
+	
+	Public Property Get IniFile
+		Set IniFile = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
+	End Property
+	
+	'
+	' Converts the rating of a song to an index used for minSpacing array.
+	'
+	Private Function ratingToIndex(ByVal rating)
+		If rating = -1 Then
+			ratingToIndex = 12
+		ElseIf rating = -2 Then
+			ratingToIndex = 11
+		Else
+			ratingToIndex = Round((rating-1) / 10, 0)
+		End If
+	End Function
+	
+	Public Property Get MinSpacing(ByVal rating)
+		MinSpacing = m_minSpacing(ratingToIndex(rating))
+	End Property
+	
+	Public Property Let MinSpacing(ByVal rating, ByVal Spacing)
+		m_minSpacing(ratingToIndex(rating)) = Spacing
+	End Property
+	
+	
+	Public Property Get AllowedMoods
+		Set AllowedMoods = m_allowedMoods
+	End Property
+	
+	Public Property Get MoodAllowed(ByVal mood)
+		If Not m_AllowedMoods.Exists(mood) Then
+			MoodAllowed = False
+		Else
+			MoodAllowed = m_allowedMoods(mood)
+		End If
+	End Property
+		
+	Private Sub Class_Initialize
+		m_SettingsVersion = 1
+				
+		' set default spacing values
+		m_MinSpacing(ratingToIndex(100)) = 30  ' For 5-star tracks
+		m_MinSpacing(ratingToIndex(90))  = 45
+		m_MinSpacing(ratingToIndex(80))  = 60
+		m_MinSpacing(ratingToIndex(70))  = 75
+		m_MinSpacing(ratingToIndex(60))  = 90
+		m_MinSpacing(ratingToIndex(50))  = 105
+		m_MinSpacing(ratingToIndex(40))  = 150
+		m_MinSpacing(ratingToIndex(30))  = 200
+		m_MinSpacing(ratingToIndex(20))  = 250
+		m_MinSpacing(ratingToIndex(10))  = 325
+		m_MinSpacing(ratingToIndex(0))   = 365 ' Bomb rating
+		m_MinSpacing(ratingToIndex(-1))  = 105 ' unknown rating
+		m_MinSpacing(ratingToIndex(-2))  = 10  ' unskipped songs (SkipCount = 0)
+		
+		Set m_AllowedMoods = CreateObject("Scripting.Dictionary")
+	End Sub
+	
+	Private Sub Class_Terminate
+		Set m_AllowedMoods = Nothing
+	End Sub
+	
+	
+	Public Sub loadFromFile
+		Dim Ini : Set Ini = IniFile
+		DbgMsg("Loading settings from " & Ini.Path)
+		
+		' Load version information TODO
+		Dim saveVersion : saveVersion = IniFile.IntValue("VersionInfo", "SaveVersion")
+		
+		' Now load ini file values
+		Dim i
+		For i=0 To UBound(m_minSpacing)
+			If Ini.ValueExists("Spacing", "MinSpacing" & i) Then
+				MinSpacing(i) = Ini.IntValue("Spacing", "MinSpacing" & i)
+			End If
+		Next
+		
+		m_allowedMoods.RemoveAll
+				
+		' Get all mood tags from the database and update allowed mood
+		Dim MoodIter : Set MoodIter = SDB.Database.OpenSQL("SELECT Mood FROM Songs GROUP BY Mood")
+		Do While Not MoodIter.EOF
+			Dim mood : mood = MoodIter.ValueByIndex(0)
+			If mood = "" Then mood = "<Unknown>"
+			
+			If Not Ini.ValueExists("AllowedMoods", mood) Then
+				m_allowedMoods(mood) = True ' allow unknown/new moods to be played by default
+			Else
+				m_allowedMoods(mood) = Ini.BoolValue("AllowedMoods", mood)
+			End If
+			
+			MoodIter.Next
+		Loop
+	End Sub
+	
+	' Save settings to file
+	Public Sub saveToFile
+		Dim Ini : Set Ini = IniFile
+		DbgMsg("Saving settings to " & ini.Path)
+
+		Ini.IntValue("VersionInfo", "SaveVersion") = m_SettingsVersion
+		
+		Dim i
+		For i=0 To 12
+			Ini.IntValue("Spacing", "MinSpacing" & i) = m_MinSpacing(i)
+		Next
+		
+		Dim mood
+		For Each mood In m_allowedMoods.Keys
+			Ini.BoolValue("AllowedMoods", mood) = m_allowedMoods(mood)
+		Next
+	End Sub
+End Class
+
+
 
 ' UI stuff
 Dim ControlPanel
 Dim ShowPanelMenuItem ' Menu item to show / hide panel when clicked
 
 
+
+
 Sub CreateMoodCheckboxes(ByRef X, ByRef Y)
-	Dim allowedMoods : Set allowedMoods = SDB.Objects("APMoodDict")
-	
-	' Get all mood tags from the database and update allowed mood
-	Dim MoodIter : Set MoodIter = SDB.Database.OpenSQL("SELECT Mood FROM Songs GROUP BY Mood")
-	Dim MoodDict : Set MoodDict = CreateObject("Scripting.Dictionary")
-	
-	Do While Not MoodIter.EOF
-		Dim Mood : Mood = MoodIter.ValueByIndex(0)
-		If Mood = "" Then Mood = "<Unknown>"
-		
-		If Not allowedMoods.Exists(Mood) Then
-			allowedMoods(Mood) = True ' allow unknown/new moods to be played by default
-		End If
-		MoodIter.Next
-	Loop
+	Dim allowedMoods : Set allowedMoods = SDB.Objects("APSettings").AllowedMoods
 	
 	' Now create check boxes
-	For Each Mood In allowedMoods.Keys
+	Dim mood
+	For Each mood In allowedMoods.Keys
 		Dim ChkBox : Set ChkBox = SDB.UI.NewCheckBox(ControlPanel)
 		With ChkBox
-			.Checked = allowedMoods(Mood)
+			.Checked = allowedMoods(mood)
 			.Common.Visible = True
-			.Caption = Mood
+			.Caption = mood
 			.Common.SetRect X, Y, 125, 20
 		End With
 		
@@ -70,9 +175,6 @@ Sub CreateMoodCheckboxes(ByRef X, ByRef Y)
 		Script.RegisterEvent ChkBox.Common, "OnClick", "OnCheckBoxToggled"
 		
 		Y = Y + 20
-		
-		MoodDict.Add Mood, ChkBox
-		MoodIter.Next
 	Next
 End Sub
 
@@ -84,11 +186,9 @@ End Sub
 Sub OnStartupMain
 	DbgMsg ScriptName & " starting..."
 	
-	' Create global variables
-	Set SDB.Objects("APMoodDict") = CreateObject("Scripting.Dictionary")
-	
-	LoadAPOptions
-	
+	Dim settings : Set settings = New APSettings
+	Set SDB.Objects("APSettings") = settings
+	settings.LoadFromFile
 	
 	'
 	' UI stuff
@@ -115,8 +215,7 @@ Sub OnStartupMain
 		.Common.SetRect X, Y, 125, 25
 		.Common.Visible = True
 	End With
-	Script.RegisterEvent PlayButton, "OnClick", "SaveAPOptions"
-	
+
 	Y = Y + 35
 	
 	Script.RegisterEvent PlayButton, "OnClick", "ClearAndRefillNowPlaying"
@@ -141,7 +240,7 @@ Sub OnStartupMain
 	ShowPanelMenuItem.Checked = ControlPanel.Common.Visible
 	
 	Script.RegisterEvent ShowPanelMenuItem, "OnClick", "ControlPanelShow"
-	Script.RegisterEvent SDB, "OnShutdown", "SaveAPOptions"
+	Script.RegisterEvent SDB, "OnShutdown", "HandleShutdown"
 	
 	DbgMsg(ScriptName & " started.")
 	
@@ -150,17 +249,14 @@ End Sub
 
 
 Sub OnCheckBoxToggled(chkBox)
-	Dim allowedMoods : Set allowedMoods = SDB.Objects("APMoodDict")
-	Dim mood : mood = chkBox.Caption
-	
-	If allowedMoods Is Nothing Then Exit Sub
-	allowedMoods(mood) = chkBox.Checked
+	' Update allowed moods from settings
+	SDB.Objects("APSettings").AllowedMoods.Item(chkBox.Caption) = chkBox.Checked
 End Sub
-	
+
 
 Sub ControlPanelShow(Item)
 	ControlPanel.Common.Visible = Not ControlPanel.Common.Visible
-	ShowPanelMenuItem.Checked = ControlPanel.Common.Visible
+	ShowPanelMenuItem.Checked   = ControlPanel.Common.Visible
 End Sub
 
 
@@ -187,96 +283,38 @@ End Sub
 Sub CloseConfigSheet(Panel, SaveConfig)
 	Dim OptionsForm : Set OptionsForm = SDB.Objects("APOptsForm")
 	If (Not OptionsForm Is Nothing) And SaveConfig Then
+		Dim settings : Set settings = SDB.Objects("APSettings")
+		
 		' save spin edit values
 		With OptionsForm.Common
-			MinSpacingUnr = .ChildControl("Unr").Value
-			MinSpacingNew = .ChildControl("New").Value
-			MinSpacing50  = .ChildControl("Five").Value
-			MinSpacing45  = .ChildControl("FourH").Value
-			MinSpacing40  = .ChildControl("Four").Value
-			MinSpacing35  = .ChildControl("ThreeH").Value
-			MinSpacing30  = .ChildControl("Three").Value
-			MinSpacing25  = .ChildControl("TwoH").Value
-			MinSpacing20  = .ChildControl("Two").Value
-			MinSpacing15  = .ChildControl("OneH").Value
-			MinSpacing10  = .ChildControl("One").Value
-			MinSpacing05  = .ChildControl("ZeroH").Value
-			MinSpacing00  = .ChildControl("Zero").Value
+			settings.MinSpacing(-2)  = .ChildControl("New").Value
+			settings.MinSpacing(-1)  = .ChildControl("Unr").Value
+			settings.MinSpacing(100) = .ChildControl("Five").Value
+			settings.MinSpacing(90)  = .ChildControl("FourH").Value
+			settings.MinSpacing(80)  = .ChildControl("Four").Value
+			settings.MinSpacing(70)  = .ChildControl("ThreeH").Value
+			settings.MinSpacing(60)  = .ChildControl("Three").Value
+			settings.MinSpacing(50)  = .ChildControl("TwoH").Value
+			settings.MinSpacing(40)  = .ChildControl("Two").Value
+			settings.MinSpacing(30)  = .ChildControl("OneH").Value
+			settings.MinSpacing(20)  = .ChildControl("One").Value
+			settings.MinSpacing(10)  = .ChildControl("ZeroH").Value
+			settings.MinSpacing(0)   = .ChildControl("Zero").Value
 		End With
 		
-		SaveAPOptions
+		settings.saveToFile
 	End If
 	
 	Set SDB.Objects("APOptsForm") = Nothing
 	Set OptionsForm = Nothing
 End Sub
 
-'
-' (Re-)loads options from ini file.
-'
-Sub LoadAPOptions()
-	DbgMsg("Loading AutoPlayer settings")
-	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
-	DbgMsg("Loading " & ScriptName & " settings from " & Ini.Path)
-	
-	' Now load ini file values
-	MinSpacingUnr = Ini.IntValue("Spacing", "MinSpacingUnr")
-	MinSpacingNew = Ini.IntValue("Spacing", "MinSpacingNew")
-	MinSpacing50  = Ini.IntValue("Spacing", "MinSpacing50")
-	MinSpacing45  = Ini.IntValue("Spacing", "MinSpacing45")
-	MinSpacing40  = Ini.IntValue("Spacing", "MinSpacing40")
-	MinSpacing35  = Ini.IntValue("Spacing", "MinSpacing35")
-	MinSpacing30  = Ini.IntValue("Spacing", "MinSpacing30")
-	MinSpacing25  = Ini.IntValue("Spacing", "MinSpacing25")
-	MinSpacing20  = Ini.IntValue("Spacing", "MinSpacing20")
-	MinSpacing15  = Ini.IntValue("Spacing", "MinSpacing15")
-	MinSpacing10  = Ini.IntValue("Spacing", "MinSpacing10")
-	MinSpacing05  = Ini.IntValue("Spacing", "MinSpacing05")
-	MinSpacing00  = Ini.IntValue("Spacing", "MinSpacing00")
-	
-	Dim MoodDict : Set MoodDict = SDB.Objects("APMoodDict")
-	If MoodDict Is Nothing Then Exit Sub
-	
-	MoodDict.RemoveAll
 
-	Dim KeyValueList : Set KeyValueList = Ini.Keys("AllowedMoods")
-	Dim i
-	
-	For i=0 To KeyValueList.Count-1
-		Dim KeyValue : KeyValue = KeyValueList.Item(i)
-		Dim Mood : Mood = Left(KeyValue, InStr(KeyValue, "=") - 1)
-		
-		MoodDict(Mood) = Ini.BoolValue("AllowedMoods", Mood)
-	Next
-End Sub
-
-
-Sub SaveAPOptions()
-	DbgMsg("Saving AutoPlayer settings")
-	Dim Ini : Set Ini = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
-	DbgMsg("Saving " & ScriptName & " settings to " & ini.Path)
-
-	Ini.IntValue("Spacing", "MinSpacingUnr") = MinSpacingUnr
-	Ini.IntValue("Spacing", "MinSpacingNew") = MinSpacingNew
-	Ini.IntValue("Spacing", "MinSpacing50")  = MinSpacing50
-	Ini.IntValue("Spacing", "MinSpacing45")  = MinSpacing45
-	Ini.IntValue("Spacing", "MinSpacing40")  = MinSpacing40
-	Ini.IntValue("Spacing", "MinSpacing35")  = MinSpacing35
-	Ini.IntValue("Spacing", "MinSpacing30")  = MinSpacing30
-	Ini.IntValue("Spacing", "MinSpacing25")  = MinSpacing25
-	Ini.IntValue("Spacing", "MinSpacing20")  = MinSpacing20
-	Ini.IntValue("Spacing", "MinSpacing15")  = MinSpacing15
-	Ini.IntValue("Spacing", "MinSpacing10")  = MinSpacing10
-	Ini.IntValue("Spacing", "MinSpacing05")  = MinSpacing05
-	Ini.IntValue("Spacing", "MinSpacing00")  = MinSpacing00
-	
-	Dim MoodDict : Set MoodDict = SDB.Objects("APMoodDict")
-	If Not MoodDict Is Nothing Then
-		Dim Mood
-		For Each Mood In MoodDict.Keys
-			Ini.BoolValue("AllowedMoods", Mood) = MoodDict(Mood)
-		Next
-	End If
+Sub HandleShutdown()
+	DbgMsg "Shutting down ..."
+	SDB.Objects("APSettings").SaveToFile
+	Set SDB.Objects("APSettings") = Nothing
+	DbgMsg "Shutdown finished."
 End Sub
 
 
@@ -313,9 +351,7 @@ End Function
 Sub ShowDetailedOptions()
 	Dim OptionsForm : Set OptionsForm = SDB.Objects("APOptsForm")
 	If OptionsForm Is Nothing Then
-		' Panel was not already visible before, create it
-		LoadAPOptions
-		
+	
 		' Show config panel
 		Set OptionsForm = SDB.UI.NewForm
 		OptionsForm.Common.SetRect 100, 100, 460, 375
@@ -343,19 +379,21 @@ Sub ShowDetailedOptions()
 		Dim MinSpacing05Edit  : Set MinSpacing05Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for 0.5-star tracks:", "ZeroH")  : X = X + DeltaX : Y = Y + DeltaY
 		Dim MinSpacing00Edit  : Set MinSpacing00Edit  = CreateSpacingTimeLine(OptionsForm, X, Y, "Min spacing for bomb tracks:", "Zero")       : X = X + DeltaX : Y = Y + DeltaY
 		
-		MinSpacingUnrEdit.Value = MinSpacingUnr
-		MinSpacingNewEdit.Value = MinSpacingNew
-		MinSpacing50Edit.Value  = MinSpacing50
-		MinSpacing45Edit.Value  = MinSpacing45
-		MinSpacing40Edit.Value  = MinSpacing40
-		MinSpacing35Edit.Value  = MinSpacing35
-		MinSpacing30Edit.Value  = MinSpacing30
-		MinSpacing25Edit.Value  = MinSpacing25
-		MinSpacing20Edit.Value  = MinSpacing20
-		MinSpacing15Edit.Value  = MinSpacing15
-		MinSpacing10Edit.Value  = MinSpacing10
-		MinSpacing05Edit.Value  = MinSpacing05
-		MinSpacing00Edit.Value  = MinSpacing00
+		With SDB.Objects("APSettings")
+			MinSpacingNewEdit.Value = .MinSpacing(-2)
+			MinSpacingUnrEdit.Value = .MinSpacing(-1)
+			MinSpacing50Edit.Value  = .MinSpacing(100)
+			MinSpacing45Edit.Value  = .MinSpacing(90)
+			MinSpacing40Edit.Value  = .MinSpacing(80)
+			MinSpacing35Edit.Value  = .MinSpacing(70)
+			MinSpacing30Edit.Value  = .MinSpacing(60)
+			MinSpacing25Edit.Value  = .MinSpacing(50)
+			MinSpacing20Edit.Value  = .MinSpacing(40)
+			MinSpacing15Edit.Value  = .MinSpacing(30)
+			MinSpacing10Edit.Value  = .MinSpacing(20)
+			MinSpacing05Edit.Value  = .MinSpacing(10)
+			MinSpacing00Edit.Value  = .MinSpacing(0)
+		End With
 		
 		' Add OK button
 		Dim OKButton : Set OKButton = SDB.UI.NewButton(OptionsForm)
@@ -430,20 +468,22 @@ End Function
 
 
 Function GetSpacingQuery(ByVal MinSpacingFactor)
+	Dim settings : Set settings = SDB.Objects("APSettings")
+	
 	GetSpacingQuery = "(" &_
-		"(SkipCount = 0 AND "                                  & CurrTime & "-LastTimePlayed > " & MinSpacingNew * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND "            & "Rating  = -1 AND " & CurrTime & "-LastTimePlayed > " & MinSpacingUnr * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating >= 0 AND Rating <=  5 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing00  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating >  5 AND Rating <= 15 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing05  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating > 15 AND Rating <= 25 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing10  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating > 25 AND Rating <= 35 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing15  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating > 35 AND Rating <= 45 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing20  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating > 45 AND Rating <= 55 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing25  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating > 55 AND Rating <= 65 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing30  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating > 65 AND Rating <= 75 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing35  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating > 75 AND Rating <= 85 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing40  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating > 85 AND Rating <= 95 AND " & CurrTime & "-LastTimePlayed > " & MinSpacing45  * MinSpacingFactor & ") OR " &_
-		"(SkipCount > 0 AND Rating > 95 AND "                  & CurrTime & "-LastTimePlayed > " & MinSpacing50  * MinSpacingFactor & ") )"
+		"(SkipCount = 0 AND "                                  & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(-2)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND "            & "Rating  = -1 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(-1)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating >= 0 AND Rating <=  5 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(0)   * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating >  5 AND Rating <= 15 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(10)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 15 AND Rating <= 25 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(20)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 25 AND Rating <= 35 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(30)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 35 AND Rating <= 45 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(40)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 45 AND Rating <= 55 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(50)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 55 AND Rating <= 65 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(60)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 65 AND Rating <= 75 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(70)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 75 AND Rating <= 85 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(80)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 85 AND Rating <= 95 AND " & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(90)  * MinSpacingFactor & ") OR " &_
+		"(SkipCount > 0 AND Rating > 95 AND "                  & CurrTime & "-LastTimePlayed > " & settings.MinSpacing(100) * MinSpacingFactor & ") )"
 End Function
 
 
@@ -453,12 +493,12 @@ End Function
 '
 Function GetAllowedMoodsString
 	' Only select songs where the checkboxof the mood tag is checked
-	Dim allowedMoods : Set allowedMoods = SDB.Objects("APMoodDict")
+	Dim allowedMoods : Set allowedMoods = SDB.Objects("APSettings").AllowedMoods
 	Dim QueryMoodString : QueryMoodString = "(0 " ' 0=False
-	Dim Mood
+	Dim mood
 	
 	For Each mood In allowedMoods.Keys
-		If allowedMoods(Mood) Then
+		If allowedMoods.Item(Mood) Then
 			If mood = "<Unknown>" Then
 				QueryMoodString = QueryMoodString & "OR Mood=''"
 			Else
@@ -468,8 +508,6 @@ Function GetAllowedMoodsString
 	Next
 	QueryMoodString = QueryMoodString & ")"
 	GetAllowedMoodsString = QueryMoodString
-	
-	Set allowedMoods = Nothing
 End Function
 
 
@@ -478,9 +516,6 @@ End Function
 '
 Function GenerateNewTrack
 	DbgMsg("Generating new track")
-	
-	LoadAPOptions
-	
 	Dim spacingFactor : spacingFactor = 3
 	Dim QueryString
 	
@@ -571,7 +606,7 @@ Sub ClearAndRefillNowPlaying
 	SDB.Player.PlaylistAddTrack NewSong
 	Set NewSong = Nothing
 	
-	SDB.Player.IsAutoDJ = True
+	SDB.Player.IsAutoDJ  = True
 	SDB.Player.isShuffle = False
 	
 	' Clear message queue before starting playback (just to be sure)
