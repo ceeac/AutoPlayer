@@ -17,6 +17,9 @@ Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
 Const ScriptName = "AutoPlayer"
 
 
+'
+' Class dealing with loading, storing and saving settings.
+'
 Class APSettings
 	' settings version. Used for backwards compatibility.
 	Private m_settingsVersion
@@ -32,31 +35,22 @@ Class APSettings
 	' Dictionary of known mood tags and if they are allowed.
 	Private m_allowedMoods
 	
+	'
+	' Properties
+	'
+	
+	' Get ini file for saving and loading.
 	Public Property Get IniFile
 		Set IniFile = SDB.Tools.IniFileByPath(SDB.IniFile.StringValue(ScriptName, "RootPath") & ScriptName & ".ini")
 	End Property
-	
-	'
-	' Converts the rating of a song to an index used for minSpacing array.
-	'
-	Private Function ratingToIndex(ByVal rating)
-		If rating = -1 Then
-			ratingToIndex = 12
-		ElseIf rating = -2 Then
-			ratingToIndex = 11
-		Else
-			ratingToIndex = Round((rating-1) / 10, 0)
-		End If
-	End Function
 	
 	Public Property Get MinSpacing(ByVal rating)
 		MinSpacing = m_minSpacing(ratingToIndex(rating))
 	End Property
 	
-	Public Property Let MinSpacing(ByVal rating, ByVal Spacing)
-		m_minSpacing(ratingToIndex(rating)) = Spacing
+	Public Property Let MinSpacing(ByVal rating, ByVal spacing)
+		m_minSpacing(ratingToIndex(rating)) = spacing
 	End Property
-	
 	
 	Public Property Get AllowedMoods
 		Set AllowedMoods = m_allowedMoods
@@ -69,7 +63,9 @@ Class APSettings
 			MoodAllowed = m_allowedMoods(mood)
 		End If
 	End Property
-		
+	
+
+	' "Constructor"
 	Private Sub Class_Initialize
 		m_SettingsVersion = 1
 				
@@ -91,11 +87,12 @@ Class APSettings
 		Set m_AllowedMoods = CreateObject("Scripting.Dictionary")
 	End Sub
 	
+	' "Destructor"
 	Private Sub Class_Terminate
 		Set m_AllowedMoods = Nothing
 	End Sub
 	
-	
+	' Load settings from ini file.
 	Public Sub loadFromFile
 		Dim Ini : Set Ini = IniFile
 		DbgMsg("Loading settings from " & Ini.Path)
@@ -129,7 +126,7 @@ Class APSettings
 		Loop
 	End Sub
 	
-	' Save settings to file
+	' Save settings to ini file
 	Public Sub saveToFile
 		Dim Ini : Set Ini = IniFile
 		DbgMsg("Saving settings to " & ini.Path)
@@ -146,6 +143,18 @@ Class APSettings
 			Ini.BoolValue("AllowedMoods", mood) = m_allowedMoods(mood)
 		Next
 	End Sub
+	
+	
+	' Converts the rating of a song to an index used for minSpacing array.
+	Private Function ratingToIndex(ByVal rating)
+		If rating = -1 Then
+			ratingToIndex = 12
+		ElseIf rating = -2 Then
+			ratingToIndex = 11
+		Else
+			ratingToIndex = Round((rating-1) / 10, 0)
+		End If
+	End Function
 End Class
 
 
@@ -156,7 +165,7 @@ Dim ShowPanelMenuItem ' Menu item to show / hide panel when clicked
 
 
 
-
+' Creates mood checkboxes on the control panel.
 Sub CreateMoodCheckboxes(ByRef X, ByRef Y)
 	Dim allowedMoods : Set allowedMoods = SDB.Objects("APSettings").AllowedMoods
 	
@@ -246,6 +255,7 @@ Sub OnStartupMain
 End Sub
 
 
+' Update allowed moods when the corresponding check box is clicked
 Sub OnCheckBoxToggled(chkBox)
 	' Update allowed moods from settings
 	SDB.Objects("APSettings").AllowedMoods.Item(chkBox.Caption) = chkBox.Checked
@@ -263,21 +273,16 @@ Sub ControlPanelClose(Item)
 End Sub
 
 
-'
-' This function adds a button to the Options Panel
-' to edit detailed options regarding AutoPlayer
-'
+' Creates a button that shows detailed settings when clicked.
 Sub InitConfigSheet(OptionsPanel)
 	Dim BtnOptions : Set BtnOptions = SDB.UI.NewButton(OptionsPanel)
 	BtnOptions.Common.SetRect 10, 10, 130, 21
 	BtnOptions.Caption = "Change configuration"
-	Script.RegisterEvent BtnOptions, "OnClick", "ShowDetailedOptions"
+	Script.RegisterEvent BtnOptions, "OnClick", "ShowDetailedSetings"
 End Sub
 
 
-'
-' Saves the configuration when requested.
-'
+' Closes the settings dialogue and optionally saves it.
 Sub CloseConfigSheet(Panel, SaveConfig)
 	Dim OptionsForm : Set OptionsForm = SDB.Objects("APOptsForm")
 	If (Not OptionsForm Is Nothing) And SaveConfig Then
@@ -308,6 +313,7 @@ Sub CloseConfigSheet(Panel, SaveConfig)
 End Sub
 
 
+' Saves configuration on shutdown.
 Sub HandleShutdown()
 	DbgMsg "Shutting down ..."
 	SDB.Objects("APSettings").SaveToFile
@@ -316,9 +322,7 @@ Sub HandleShutdown()
 End Sub
 
 
-'
 ' Creates a line in the Options Sheet for a specific rating
-'
 Function CreateSpacingTimeLine(Parent, ByVal xoff, ByVal yoff, LeftLabelText, SpinName)
 	Const SpinWidth = 45
 	Const LeftLabelWidth = 200
@@ -343,10 +347,8 @@ Function CreateSpacingTimeLine(Parent, ByVal xoff, ByVal yoff, LeftLabelText, Sp
 End Function
 
 
-'
 ' This function initializes the Options Widow for AutoPlayer.
-'
-Sub ShowDetailedOptions()
+Sub ShowDetailedSettings()
 	Dim OptionsForm : Set OptionsForm = SDB.Objects("APOptsForm")
 	If OptionsForm Is Nothing Then
 	
@@ -423,7 +425,7 @@ End Sub
 
 
 Function FixSearchString(Str)
-	Str = Replace(Str, "'", "''") '<--- Single quotes are escaped with another single quote
+	Str = Replace(Str, "'", "''")
 	FixSearchString = Str
 End Function
 
