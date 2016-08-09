@@ -127,7 +127,7 @@ Sub RegExpReplace(ByRef str, ByVal pattern, ByVal replacement)
 	With (New RegExp)
 		.Global = True
 		.Pattern = pattern
-		folderPath = .Replace(folderPath, replacement)
+		str = .Replace(str, replacement)
 	End With
 End Sub
 
