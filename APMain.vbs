@@ -104,7 +104,7 @@ Class APSettings
 		Dim i
 		For i=0 To UBound(m_minSpacing)
 			If Ini.ValueExists("Spacing", "MinSpacing" & i) Then
-				MinSpacing(i) = Ini.IntValue("Spacing", "MinSpacing" & i)
+				m_minSpacing(i) = Ini.IntValue("Spacing", "MinSpacing" & i)
 			End If
 		Next
 		
