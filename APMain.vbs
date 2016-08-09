@@ -278,7 +278,7 @@ Sub InitConfigSheet(OptionsPanel)
 	Dim BtnOptions : Set BtnOptions = SDB.UI.NewButton(OptionsPanel)
 	BtnOptions.Common.SetRect 10, 10, 130, 21
 	BtnOptions.Caption = "Change configuration"
-	Script.RegisterEvent BtnOptions, "OnClick", "ShowDetailedSetings"
+	Script.RegisterEvent BtnOptions, "OnClick", "ShowDetailedOptions"
 End Sub
 
 
@@ -348,7 +348,7 @@ End Function
 
 
 ' This function initializes the Options Widow for AutoPlayer.
-Sub ShowDetailedSettings()
+Sub ShowDetailedOptions()
 	Dim OptionsForm : Set OptionsForm = SDB.Objects("APOptsForm")
 	If OptionsForm Is Nothing Then
 	
