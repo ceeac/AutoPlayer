@@ -41,16 +41,15 @@ Function BeginInstall
 	WriteIni scriptsIni, ScriptName, "Language",    "VBScript"
 	
 	' set default values; preserve settings
-	Dim rootPath : rootPath = SDB.ScriptsPath & ScriptName & "\"
-	SDB.Tools.FileSystem.CreateFolder rootPath
-	
-	Dim mmIni : Set mmIni = SDB.IniFile
+	Dim rootPath : rootPath  = SDB.ScriptsPath & ScriptName & "\"
+	Dim iniPath  : iniPath   = rootPath & ScriptName & ".ini"
+	Dim mmIni    : Set mmIni = SDB.IniFile
 	WriteIni mmIni, ScriptName, "RootPath", rootPath
 	
-	' Create AutoPlayer.ini
-	Dim iniPath : iniPath = rootPath & ScriptName & ".ini"
-	
 	If Not SDB.Tools.FileSystem.FileExists(iniPath) Then
+		' If the ini does not exist, it means that the program is not installed
+		' or was uninstalled without preserving settings. So we have to create the root folder, too
+		SDB.Tools.FileSystem.CreateFolder rootPath
 		SDB.Tools.FileSystem.CreateTextFile(iniPath)
 		
 		If Not SDB.Tools.FileSystem.FileExists(iniPath) Then

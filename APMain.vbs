@@ -11,7 +11,7 @@ Option Explicit
 '
 ' Constant definitions
 '
-Const DebugMode = True
+Const DebugMode = False
 Const CurrTime = "(JulianDay('now','localtime')-2415018.5)" ' Get current time for use in SQL strings
 Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
 Const ScriptName = "AutoPlayer"
@@ -104,7 +104,7 @@ Class APSettings
 		Dim i
 		For i=0 To UBound(m_minSpacing)
 			If Ini.ValueExists("Spacing", "MinSpacing" & i) Then
-				MinSpacing(i) = Ini.IntValue("Spacing", "MinSpacing" & i)
+				m_minSpacing(i) = Ini.IntValue("Spacing", "MinSpacing" & i)
 			End If
 		Next
 		
@@ -280,7 +280,7 @@ Sub InitConfigSheet(OptionsPanel)
 	Dim BtnOptions : Set BtnOptions = SDB.UI.NewButton(OptionsPanel)
 	BtnOptions.Common.SetRect 10, 10, 130, 21
 	BtnOptions.Caption = "Change configuration"
-	Script.RegisterEvent BtnOptions, "OnClick", "ShowDetailedSetings"
+	Script.RegisterEvent BtnOptions, "OnClick", "ShowDetailedOptions"
 End Sub
 
 
@@ -350,7 +350,7 @@ End Function
 
 
 ' This function initializes the Options Widow for AutoPlayer.
-Sub ShowDetailedSettings()
+Sub ShowDetailedOptions()
 	Dim OptionsForm : Set OptionsForm = SDB.Objects("APOptsForm")
 	If OptionsForm Is Nothing Then
 	
