@@ -16,7 +16,6 @@ Const CurrTime = "(JulianDay('now','localtime')-2415018.5)" ' Get current time f
 Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
 Const ScriptName = "AutoPlayer"
 
-
 '
 ' Class dealing with loading, storing and saving settings.
 '
@@ -32,8 +31,48 @@ Class APSettings
 	' etc.
 	Private m_minSpacing(12)
 	
+	' Factor to multiply min spacing by to, in 1/100
+	Private m_spacingFactor
+	
+	' Min and max allowed values for spacing factor. 0=no limit
+	Private m_spacingFactorMin
+	Private m_spacingFactorMax
+	
+	
 	' Dictionary of known mood tags and if they are allowed.
 	Private m_allowedMoods
+	
+	
+	' "Constructor"
+	Private Sub Class_Initialize
+		m_SettingsVersion = 2
+				
+		' set default spacing values
+		m_MinSpacing(ratingToIndex(100)) = 30  ' For 5-star tracks
+		m_MinSpacing(ratingToIndex(90))  = 45
+		m_MinSpacing(ratingToIndex(80))  = 60
+		m_MinSpacing(ratingToIndex(70))  = 75
+		m_MinSpacing(ratingToIndex(60))  = 90
+		m_MinSpacing(ratingToIndex(50))  = 105
+		m_MinSpacing(ratingToIndex(40))  = 150
+		m_MinSpacing(ratingToIndex(30))  = 200
+		m_MinSpacing(ratingToIndex(20))  = 250
+		m_MinSpacing(ratingToIndex(10))  = 325
+		m_MinSpacing(ratingToIndex(0))   = 365 ' Bomb rating
+		m_MinSpacing(ratingToIndex(-1))  = 105 ' unknown rating
+		m_MinSpacing(ratingToIndex(-2))  = 10  ' unskipped songs (SkipCount = 0)
+		
+		m_spacingFactor = 100 ' default: no change
+		m_spacingFactorMin = 10 ' 10% => 10 times faster song repitition
+		m_spacingFactorMax = 0
+		
+		Set m_AllowedMoods = CreateObject("Scripting.Dictionary")
+	End Sub
+	
+	' "Destructor"
+	Private Sub Class_Terminate
+		Set m_AllowedMoods = Nothing
+	End Sub
 	
 	'
 	' Properties
@@ -65,32 +104,9 @@ Class APSettings
 	End Property
 	
 
-	' "Constructor"
-	Private Sub Class_Initialize
-		m_SettingsVersion = 1
-				
-		' set default spacing values
-		m_MinSpacing(ratingToIndex(100)) = 30  ' For 5-star tracks
-		m_MinSpacing(ratingToIndex(90))  = 45
-		m_MinSpacing(ratingToIndex(80))  = 60
-		m_MinSpacing(ratingToIndex(70))  = 75
-		m_MinSpacing(ratingToIndex(60))  = 90
-		m_MinSpacing(ratingToIndex(50))  = 105
-		m_MinSpacing(ratingToIndex(40))  = 150
-		m_MinSpacing(ratingToIndex(30))  = 200
-		m_MinSpacing(ratingToIndex(20))  = 250
-		m_MinSpacing(ratingToIndex(10))  = 325
-		m_MinSpacing(ratingToIndex(0))   = 365 ' Bomb rating
-		m_MinSpacing(ratingToIndex(-1))  = 105 ' unknown rating
-		m_MinSpacing(ratingToIndex(-2))  = 10  ' unskipped songs (SkipCount = 0)
-		
-		Set m_AllowedMoods = CreateObject("Scripting.Dictionary")
-	End Sub
-	
-	' "Destructor"
-	Private Sub Class_Terminate
-		Set m_AllowedMoods = Nothing
-	End Sub
+	Public Property Get SpacingFactor
+		SpacingFactor = CDbl(m_spacingFactor) / 100
+	End Property
 	
 	' Load settings from ini file.
 	Public Sub loadFromFile
@@ -124,6 +140,22 @@ Class APSettings
 			
 			MoodIter.Next
 		Loop
+		
+		' New in save version 2:
+		' spacing factor
+		' 
+		If saveVersion >= 2 Then
+			If Ini.ValueExists("Spacing", "SpacingFactor") Then
+				m_spacingFactor = Ini.IntValue("Spacing", "SpacingFactor")
+			End If
+			If Ini.ValueExists("Spacing", "SpacingFactorMin") Then
+				m_spacingFactorMin = Ini.IntValue("Spacing", "SpacingFactorMin")
+			End If
+			If Ini.ValueExists("Spacing", "SpacingFactorMax") Then
+				m_spacingFactorMax = Ini.IntValue("Spacing", "SpacingFactorMax")
+			End If
+		End If
+			
 	End Sub
 	
 	' Save settings to ini file
@@ -138,6 +170,12 @@ Class APSettings
 			Ini.IntValue("Spacing", "MinSpacing" & i) = m_MinSpacing(i)
 		Next
 		
+		' spacing factor, in 1/100
+		Ini.IntValue("Spacing", "SpacingFactor")    = m_spacingFactor
+		Ini.IntValue("Spacing", "SpacingFactorMin") = m_spacingFactorMin
+		Ini.IntValue("Spacing", "SpacingFactorMax") = m_spacingFactorMax
+		
+
 		Dim mood
 		For Each mood In m_allowedMoods.Keys
 			Ini.BoolValue("AllowedMoods", mood) = m_allowedMoods(mood)
@@ -155,6 +193,33 @@ Class APSettings
 			ratingToIndex = Round((rating-1) / 10, 0)
 		End If
 	End Function
+	
+	' Changes the factor for "minSpacing" values.
+	' higher factor -> less frequent repition
+	' lower factor -> more frequent repition
+	Sub IncreaseSpacingFactor(ByVal increase)
+		If m_spacingFactor < 2 Then
+			m_spacingFactor = m_spacingFactor + 10
+		Else
+			m_spacingFactor = m_spacingFactor + 100
+		End If
+		
+		If m_SpacingFactorMax <> 0 And m_spacingFactor > m_spacingFactorMax Then
+			m_spacingFactor = m_spacingFactorMax
+		End If
+	End Sub
+	
+	Sub DecreaseSpacingFactor
+		If m_spacingFactor > 2 Then
+			m_spacingFactor = m_spacingFactor - 100
+		Else
+			m_spacingFactor = m_spacingFactor - 10
+		End If
+		
+		If m_spacingFactorMin <> 0 And m_spacingFactor < m_spacingFactorMin Then
+			m_spacingFactor = m_spacingFactorMin
+		End If
+	End Sub
 End Class
 
 
@@ -517,32 +582,36 @@ End Function
 ' Generates a new track to be queued for Now Playing
 '
 Function GenerateNewTrack
-	DbgMsg("Generating new track")
-	Dim spacingFactor : spacingFactor = 3
-	Dim QueryString
+	DbgMsg ""
+	DbgMsg "Generating new track"
 	
-	Do While spacingFactor >= 0.5
-		DbgMsg("SpacingFactor=" & spacingFactor)
-		
+	Dim settings : Set settings = SDB.Objects("APSettings")
+	Dim QueryString
+	Dim numIter : numIter = 0
+	
+	Do 
+		DbgMsg("SpacingFactor=" & settings.SpacingFactor)
+	
 		' Select only tracks that have not been played for some time
 		QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND " &_
-			GetSpacingQuery(spacingFactor) & " AND " & GetAllowedMoodsString()
+			GetSpacingQuery(settings.SpacingFactor) & " AND " & GetAllowedMoodsString()
 		
-		SDB.ProcessMessages
 		Dim numSongs : numSongs = SDB.Database.OpenSQL("SELECT COUNT(ID) FROM Songs WHERE " & QueryString).ValueByIndex(0)
 		
-		DbgMsg("NumSongs=" & numSongs)
-		If numSongs > 50 Then
-			DbgMsg("Using SpacingFactor=" & spacingFactor)
+		DbgMsg "numSongs = " & numSongs
+		
+		If numSongs < 50 Then
+			settings.DecreaseSpacingFactor
+		ElseIf numSongs > 500 Then
+			settings.IncreaseSpacingFactor
+		Else
+			' we have the right number of songs
 			Exit Do
 		End If
-		
-		If spacingFactor > 2 Then
-			spacingFactor = spacingFactor - 1
-		Else
-			spacingFactor = spacingFactor - 0.1
-		End If
-	Loop
+		numIter = numIter + 1
+	Loop Until numIter > 50 ' or some other high value
+	
+	DbgMsg "Using SpacingFactor=" & settings.SpacingFactor
 	
 	' Now query the SQL DB
 	Dim Iter : Set Iter = SDB.Database.QuerySongs(QueryString & " ORDER BY RANDOM(*)")
@@ -581,7 +650,6 @@ Function GenerateNewTrack
 	
 	' All OK -> Tell about now playing song
 	DbgMsg("NowPlayingAdd " & Iter.Item.ArtistName & " - " & Iter.Item.Title)
-	DbgMsg("")
 	
 	Set GenerateNewTrack = Iter.Item
 	Set Iter = Nothing
