@@ -618,7 +618,6 @@ End Sub
 
 
 Sub BeginUninstall
-	Dim ini : Set ini = SDB.IniFile
-	Dim rootPath : rootPath = ini.StringValue(ScriptName, "RootPath")
+	Dim rootPath : rootPath = SDB.IniFile.StringValue(ScriptName, "RootPath")
 	SDB.Tools.FileSystem.CopyFile rootPath & "APInstaller.vbs", SDB.ScriptsPath & "APInstaller.vbs"
 End Sub
