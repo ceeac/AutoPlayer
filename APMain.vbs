@@ -613,6 +613,8 @@ Function GenerateNewTrack
 	
 	DbgMsg "Using SpacingFactor=" & settings.SpacingFactor
 	
+	SDB.ProcessMessages
+	
 	' Now query the SQL DB
 	Dim Iter : Set Iter = SDB.Database.QuerySongs(QueryString & " ORDER BY RANDOM(*)")
 	
