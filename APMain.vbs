@@ -624,7 +624,6 @@ Function GenerateNewTrack
 		
 		If IsTrackOK(Iter.Item) Then
 			DbgMsg("NowPlayingAdd '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'")
-			DbgMsg("")
 			
 			Set GenerateNewTrack = Iter.Item
 			Set Iter = Nothing
