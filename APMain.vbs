@@ -600,14 +600,15 @@ Function GenerateNewTrack
 		
 		DbgMsg "numSongs = " & numSongs
 		
-		If numSongs < 50 Then
-			settings.DecreaseSpacingFactor
-		ElseIf numSongs > 500 Then
-			settings.IncreaseSpacingFactor
-		Else
-			' we have the right number of songs
+		If numSongs >= 50 Then
+			' increase spacing factor only once per new song to prevent infinite loops.
+			If numSongs > 500 Then settings.IncreaseSpacingFactor
+			
 			Exit Do
 		End If
+		
+		' not enough songs in song pool
+		settings.DecreaseSpacingFactor
 		numIter = numIter + 1
 	Loop Until numIter > 50 ' or some other high value
 	
