@@ -197,7 +197,7 @@ Class APSettings
 	' Changes the factor for "minSpacing" values.
 	' higher factor -> less frequent repition
 	' lower factor -> more frequent repition
-	Sub IncreaseSpacingFactor(ByVal increase)
+	Public Sub IncreaseSpacingFactor
 		If m_spacingFactor < 2 Then
 			m_spacingFactor = m_spacingFactor + 10
 		Else
@@ -209,7 +209,7 @@ Class APSettings
 		End If
 	End Sub
 	
-	Sub DecreaseSpacingFactor
+	Public Sub DecreaseSpacingFactor
 		If m_spacingFactor > 2 Then
 			m_spacingFactor = m_spacingFactor - 100
 		Else
