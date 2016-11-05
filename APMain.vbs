@@ -519,7 +519,7 @@ Function IsTrackOK(Song)
 	For i = 0 To SDB.Player.CurrentSongList.Count-1
 		Set NowPlayingSong = SDB.Player.CurrentSongList.Item(i)
 		If NowPlayingSong.AlbumName = Song.AlbumName Or NowPlayingSong.AlbumArtistName = Song.AlbumArtistName Or NowPlayingSong.Title = Song.Title Then
-			DbgMsg("Rejecting " & Song.ArtistName & " - " & Song.Title & ": Track is already in Now Playing list")
+			DbgMsg("Rejecting " & Song.ArtistName & " - " & Song.Title & ": A similar track is already in Now Playing list")
 			Exit Function
 		End If
 	Next
@@ -588,6 +588,8 @@ Function GenerateNewTrack
 	Dim settings : Set settings = SDB.Objects("APSettings")
 	Dim QueryString
 	Dim numIter : numIter = 0
+	
+	DbgMsg("Determining spacing factor")
 	
 	Do 
 		DbgMsg("SpacingFactor=" & settings.SpacingFactor)
