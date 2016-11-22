@@ -198,7 +198,7 @@ Class APSettings
 	' higher factor -> less frequent repition
 	' lower factor -> more frequent repition
 	Public Sub IncreaseSpacingFactor
-		If m_spacingFactor < 2 Then
+		If m_spacingFactor < 200 Then
 			m_spacingFactor = m_spacingFactor + 10
 		Else
 			m_spacingFactor = m_spacingFactor + 100
@@ -210,7 +210,7 @@ Class APSettings
 	End Sub
 	
 	Public Sub DecreaseSpacingFactor
-		If m_spacingFactor > 2 Then
+		If m_spacingFactor > 200 Then
 			m_spacingFactor = m_spacingFactor - 100
 		Else
 			m_spacingFactor = m_spacingFactor - 10
