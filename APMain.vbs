@@ -103,10 +103,13 @@ Class APSettings
 		End If
 	End Property
 	
-
 	Public Property Get SpacingFactor
 		SpacingFactor = CDbl(m_spacingFactor) / 100
 	End Property
+	
+	Public Sub ResetSpacingFactor
+		m_spacingFactor = 100
+	End Sub
 	
 	' Load settings from ini file.
 	Public Sub loadFromFile
@@ -324,6 +327,7 @@ End Sub
 Sub OnCheckBoxToggled(chkBox)
 	' Update allowed moods from settings
 	SDB.Objects("APSettings").AllowedMoods.Item(chkBox.Caption) = chkBox.Checked
+	SDB.Objects("APSettings").ResetSpacingFactor
 End Sub
 
 
