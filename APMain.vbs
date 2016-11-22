@@ -317,8 +317,6 @@ Sub OnStartupMain
 	Script.RegisterEvent SDB, "OnShutdown", "HandleShutdown"
 	
 	DbgMsg(ScriptName & " started.")
-	
-	DbgMsg("Finished AutoPlayer startup")
 End Sub
 
 
