@@ -11,7 +11,7 @@ Option Explicit
 '
 ' Constant definitions
 '
-Const DebugMode = True
+Const DebugMode = False
 Const CurrTime = "(JulianDay('now','localtime')-2415018.5)" ' Get current time for use in SQL strings
 Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
 Const ScriptName = "AutoPlayer"
