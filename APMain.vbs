@@ -16,7 +16,6 @@ Const CurrTime = "(JulianDay('now','localtime')-2415018.5)" ' Get current time f
 Const MaxSpacingTime = 999 ' Maximum value of 'MinSpacing*' values below
 Const ScriptName = "AutoPlayer"
 
-
 '
 ' Class dealing with loading, storing and saving settings.
 '
@@ -32,8 +31,48 @@ Class APSettings
 	' etc.
 	Private m_minSpacing(12)
 	
+	' Factor to multiply min spacing by to, in 1/100
+	Private m_spacingFactor
+	
+	' Min and max allowed values for spacing factor. 0=no limit
+	Private m_spacingFactorMin
+	Private m_spacingFactorMax
+	
+	
 	' Dictionary of known mood tags and if they are allowed.
 	Private m_allowedMoods
+	
+	
+	' "Constructor"
+	Private Sub Class_Initialize
+		m_SettingsVersion = 2
+				
+		' set default spacing values
+		m_MinSpacing(ratingToIndex(100)) = 30  ' For 5-star tracks
+		m_MinSpacing(ratingToIndex(90))  = 45
+		m_MinSpacing(ratingToIndex(80))  = 60
+		m_MinSpacing(ratingToIndex(70))  = 75
+		m_MinSpacing(ratingToIndex(60))  = 90
+		m_MinSpacing(ratingToIndex(50))  = 105
+		m_MinSpacing(ratingToIndex(40))  = 150
+		m_MinSpacing(ratingToIndex(30))  = 200
+		m_MinSpacing(ratingToIndex(20))  = 250
+		m_MinSpacing(ratingToIndex(10))  = 325
+		m_MinSpacing(ratingToIndex(0))   = 365 ' Bomb rating
+		m_MinSpacing(ratingToIndex(-1))  = 105 ' unknown rating
+		m_MinSpacing(ratingToIndex(-2))  = 10  ' unskipped songs (SkipCount = 0)
+		
+		m_spacingFactor = 100 ' default: no change
+		m_spacingFactorMin = 10 ' 10% => 10 times faster song repitition
+		m_spacingFactorMax = 0
+		
+		Set m_AllowedMoods = CreateObject("Scripting.Dictionary")
+	End Sub
+	
+	' "Destructor"
+	Private Sub Class_Terminate
+		Set m_AllowedMoods = Nothing
+	End Sub
 	
 	'
 	' Properties
@@ -64,32 +103,12 @@ Class APSettings
 		End If
 	End Property
 	
-
-	' "Constructor"
-	Private Sub Class_Initialize
-		m_SettingsVersion = 1
-				
-		' set default spacing values
-		m_MinSpacing(ratingToIndex(100)) = 30  ' For 5-star tracks
-		m_MinSpacing(ratingToIndex(90))  = 45
-		m_MinSpacing(ratingToIndex(80))  = 60
-		m_MinSpacing(ratingToIndex(70))  = 75
-		m_MinSpacing(ratingToIndex(60))  = 90
-		m_MinSpacing(ratingToIndex(50))  = 105
-		m_MinSpacing(ratingToIndex(40))  = 150
-		m_MinSpacing(ratingToIndex(30))  = 200
-		m_MinSpacing(ratingToIndex(20))  = 250
-		m_MinSpacing(ratingToIndex(10))  = 325
-		m_MinSpacing(ratingToIndex(0))   = 365 ' Bomb rating
-		m_MinSpacing(ratingToIndex(-1))  = 105 ' unknown rating
-		m_MinSpacing(ratingToIndex(-2))  = 10  ' unskipped songs (SkipCount = 0)
-		
-		Set m_AllowedMoods = CreateObject("Scripting.Dictionary")
-	End Sub
+	Public Property Get SpacingFactor
+		SpacingFactor = CDbl(m_spacingFactor) / 100
+	End Property
 	
-	' "Destructor"
-	Private Sub Class_Terminate
-		Set m_AllowedMoods = Nothing
+	Public Sub ResetSpacingFactor
+		m_spacingFactor = 100
 	End Sub
 	
 	' Load settings from ini file.
@@ -124,6 +143,22 @@ Class APSettings
 			
 			MoodIter.Next
 		Loop
+		
+		' New in save version 2:
+		' spacing factor
+		' 
+		If saveVersion >= 2 Then
+			If Ini.ValueExists("Spacing", "SpacingFactor") Then
+				m_spacingFactor = Ini.IntValue("Spacing", "SpacingFactor")
+			End If
+			If Ini.ValueExists("Spacing", "SpacingFactorMin") Then
+				m_spacingFactorMin = Ini.IntValue("Spacing", "SpacingFactorMin")
+			End If
+			If Ini.ValueExists("Spacing", "SpacingFactorMax") Then
+				m_spacingFactorMax = Ini.IntValue("Spacing", "SpacingFactorMax")
+			End If
+		End If
+			
 	End Sub
 	
 	' Save settings to ini file
@@ -138,6 +173,12 @@ Class APSettings
 			Ini.IntValue("Spacing", "MinSpacing" & i) = m_MinSpacing(i)
 		Next
 		
+		' spacing factor, in 1/100
+		Ini.IntValue("Spacing", "SpacingFactor")    = m_spacingFactor
+		Ini.IntValue("Spacing", "SpacingFactorMin") = m_spacingFactorMin
+		Ini.IntValue("Spacing", "SpacingFactorMax") = m_spacingFactorMax
+		
+
 		Dim mood
 		For Each mood In m_allowedMoods.Keys
 			Ini.BoolValue("AllowedMoods", mood) = m_allowedMoods(mood)
@@ -155,6 +196,33 @@ Class APSettings
 			ratingToIndex = Round((rating-1) / 10, 0)
 		End If
 	End Function
+	
+	' Changes the factor for "minSpacing" values.
+	' higher factor -> less frequent repition
+	' lower factor -> more frequent repition
+	Public Sub IncreaseSpacingFactor
+		If m_spacingFactor < 200 Then
+			m_spacingFactor = m_spacingFactor + 10
+		Else
+			m_spacingFactor = m_spacingFactor + 100
+		End If
+		
+		If m_SpacingFactorMax <> 0 And m_spacingFactor > m_spacingFactorMax Then
+			m_spacingFactor = m_spacingFactorMax
+		End If
+	End Sub
+	
+	Public Sub DecreaseSpacingFactor
+		If m_spacingFactor > 200 Then
+			m_spacingFactor = m_spacingFactor - 100
+		Else
+			m_spacingFactor = m_spacingFactor - 10
+		End If
+		
+		If m_spacingFactorMin <> 0 And m_spacingFactor < m_spacingFactorMin Then
+			m_spacingFactor = m_spacingFactorMin
+		End If
+	End Sub
 End Class
 
 
@@ -259,6 +327,7 @@ End Sub
 Sub OnCheckBoxToggled(chkBox)
 	' Update allowed moods from settings
 	SDB.Objects("APSettings").AllowedMoods.Item(chkBox.Caption) = chkBox.Checked
+	SDB.Objects("APSettings").ResetSpacingFactor
 End Sub
 
 
@@ -452,7 +521,7 @@ Function IsTrackOK(Song)
 	For i = 0 To SDB.Player.CurrentSongList.Count-1
 		Set NowPlayingSong = SDB.Player.CurrentSongList.Item(i)
 		If NowPlayingSong.AlbumName = Song.AlbumName Or NowPlayingSong.AlbumArtistName = Song.AlbumArtistName Or NowPlayingSong.Title = Song.Title Then
-			DbgMsg("Rejecting " & Song.ArtistName & " - " & Song.Title & ": Track is already in NowPlaying list")
+			DbgMsg("Rejecting " & Song.ArtistName & " - " & Song.Title & ": A similar track is already in Now Playing list")
 			Exit Function
 		End If
 	Next
@@ -515,51 +584,76 @@ End Function
 ' Generates a new track to be queued for Now Playing
 '
 Function GenerateNewTrack
-	' Select only tracks that have not been played for some time
-	Dim QueryString : QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND " &_
-		GetSpacingQuery(1) & " AND " & GetAllowedMoodsString() & " ORDER BY RANDOM(*)"
-
-	' Clear message queue first
+	DbgMsg ""
+	DbgMsg "Generating new track"
+	
+	Dim settings : Set settings = SDB.Objects("APSettings")
+	Dim QueryString
+	Dim numIter : numIter = 0
+	
+	DbgMsg("Determining spacing factor")
+	
+	Do 
+		DbgMsg("SpacingFactor=" & settings.SpacingFactor)
+	
+		' Select only tracks that have not been played for some time
+		QueryString = "Custom3 NOT LIKE '%Archive%' AND PlayCounter > 0 AND " &_
+			GetSpacingQuery(settings.SpacingFactor) & " AND " & GetAllowedMoodsString()
+		
+		Dim numSongs : numSongs = SDB.Database.OpenSQL("SELECT COUNT(ID) FROM Songs WHERE " & QueryString).ValueByIndex(0)
+		
+		DbgMsg "numSongs = " & numSongs
+		
+		If numSongs >= 10 Then
+			' increase spacing factor only once per new song to prevent infinite loops.
+			If numSongs > 200 Then settings.IncreaseSpacingFactor
+			
+			Exit Do
+		End If
+		
+		' not enough songs in song pool
+		settings.DecreaseSpacingFactor
+		numIter = numIter + 1
+	Loop Until numIter > 50 ' or some other high value
+	
+	DbgMsg "Using SpacingFactor=" & settings.SpacingFactor
+	
 	SDB.ProcessMessages
 	
 	' Now query the SQL DB
-	Dim Iter : Set Iter = SDB.Database.QuerySongs(QueryString)
+	Dim Iter : Set Iter = SDB.Database.QuerySongs(QueryString & " ORDER BY RANDOM(*)")
 	
 	Do Until Iter.EOF
 		' Check tracks if they can be inserted into the Now Playing list
-		DbgMsg("Considering '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'")
+		DbgMsg "Considering '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'"
 		
 		If IsTrackOK(Iter.Item) Then
-			DbgMsg("NowPlayingAdd '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'")
-			DbgMsg("")
-			
-			Set GenerateNewTrack = Iter.Item
-			Set Iter = Nothing
-			Exit Function
+			Exit Do
 		End If
 		
 		Iter.Next
 	Loop
 	
-	' Clean up
-	Set Iter = Nothing
-	SDB.ProcessMessages
 	
-	
-	DbgMsg("Panic: Selecting random track")
-	Set Iter = SDB.Database.QuerySongs("1 ORDER BY RANDOM(*) LIMIT 1")
 	If Iter.EOF Then
-		' There is nothing we can do about it; there are probably no tracks in the library
-		DbgMsg("Giving up: No suitable track has been found")
-		
+		' Clean up
 		Set Iter = Nothing
-		Set GenerateNewTrack = Nothing
-		Exit Function
-	End If
+		SDB.ProcessMessages
+		
+		DbgMsg "Panic: Selecting random track"
+		Set Iter = SDB.Database.QuerySongs("Custom3 NOT LIKE '%Archive%' ORDER BY RANDOM(*) LIMIT 1")
+		If Iter.EOF Then
+			' There is nothing we can do about it; there are probably no tracks in the library
+			DbgMsg "Giving up: No suitable track has been found"
 	
+			Set Iter = Nothing
+			Set GenerateNewTrack = Nothing
+			Exit Function
+		End If
+	End If
+
 	' All OK -> Tell about now playing song
-	DbgMsg("NowPlayingAdd " & Iter.Item.ArtistName & " - " & Iter.Item.Title)
-	DbgMsg("")
+	DbgMsg "NowPlayingAdd '" & Iter.Item.ArtistName & " - " & Iter.Item.Title & "'"
 	
 	Set GenerateNewTrack = Iter.Item
 	Set Iter = Nothing
@@ -596,7 +690,6 @@ End Sub
 
 
 Sub BeginUninstall
-	Dim ini : Set ini = SDB.IniFile
-	Dim rootPath : rootPath = ini.StringValue(ScriptName, "RootPath")
+	Dim rootPath : rootPath = SDB.IniFile.StringValue(ScriptName, "RootPath")
 	SDB.Tools.FileSystem.CopyFile rootPath & "APInstaller.vbs", SDB.ScriptsPath & "APInstaller.vbs"
 End Sub
